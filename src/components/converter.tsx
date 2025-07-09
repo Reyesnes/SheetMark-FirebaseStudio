@@ -201,7 +201,7 @@ export function Converter() {
                             ref={fileInputRef} 
                             onChange={handleFileChange} 
                             className="hidden" 
-                            accept=".csv, .tsv, text/plain"
+                            accept=".csv, .tsv, text/plain, .xlsx, .xls"
                         />
                     </CardTitle>
                     <CardDescription>Pega aquí los datos de tu hoja de cálculo o sube un archivo.</CardDescription>
@@ -247,41 +247,53 @@ export function Converter() {
                         </Tabs>
                     </CardHeader>
                     <CardContent>
+                        <div className="mb-4">
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="encoding">Codificación de Archivo (Entrada)</Label>
+                                <Select value={encoding} onValueChange={setEncoding}>
+                                    <SelectTrigger id="encoding" className="bg-background w-full sm:max-w-xs">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="UTF-8">UTF-8 (Default)</SelectItem>
+                                        <SelectItem value="ISO-8859-1">ISO-8859-1 (Latin 1)</SelectItem>
+                                        <SelectItem value="ISO-8859-15">ISO-8859-15 (Latin 9)</SelectItem>
+                                        <SelectItem value="windows-1252">Windows-1252 (ANSI)</SelectItem>
+                                        <SelectItem value="windows-1251">Windows-1251 (Cyrillic)</SelectItem>
+                                        <SelectItem value="UTF-16BE">UTF-16 Big Endian</SelectItem>
+                                        <SelectItem value="UTF-16LE">UTF-16 Little Endian</SelectItem>
+                                        <SelectItem value="Shift_JIS">Shift_JIS (Japonés)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">Afecta a archivos subidos. Si ves '', prueba otra opción.</p>
+                            </div>
+                        </div>
+
                         {outputType === 'csv' && (
-                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-4 p-4 border rounded-lg bg-card">
-                                <div className="flex items-center space-x-2 pt-5 sm:pt-0 sm:items-end">
-                                    <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
-                                    <Label htmlFor="double-quotes" className="cursor-pointer leading-none">Usar comillas dobles</Label>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="delimiter">Delimitador de Valor</Label>
-                                    <Select value={delimiter} onValueChange={setDelimiter}>
-                                        <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value=",">Comma (CSV) (,)</SelectItem>
-                                            <SelectItem value="\t">Tab (TSV) (\t)</SelectItem>
-                                            <SelectItem value=";">Semicolon (;) (Default)</SelectItem>
-                                            <SelectItem value="|">Pipe (|)</SelectItem>
-                                            <SelectItem value=":">Colon (:)</SelectItem>
-                                            <SelectItem value="/">Slash (/)</SelectItem>
-                                            <SelectItem value="#">Octothorpe (#)</SelectItem>
-                                            <SelectItem value="~">Tilde (~)</SelectItem>
-                                            <SelectItem value="-">Dash (-)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="encoding">Codificación</Label>
-                                    <Select value={encoding} onValueChange={setEncoding}>
-                                        <SelectTrigger id="encoding" className="bg-background"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="UTF-8">UTF-8</SelectItem>
-                                            <SelectItem value="ISO-8859-1">ISO-8859-1 (Latin1)</SelectItem>
-                                            <SelectItem value="windows-1252">Windows-1252</SelectItem>
-                                            <SelectItem value="UTF-16BE">UTF-16BE</SelectItem>
-                                            <SelectItem value="UTF-16LE">UTF-16LE</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                           <div className="mb-4 p-4 border rounded-lg bg-card">
+                                <p className="text-sm font-medium mb-4">Opciones de Salida CSV</p>
+                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
+                                        <Label htmlFor="double-quotes" className="cursor-pointer leading-none">Usar comillas dobles</Label>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="delimiter">Delimitador</Label>
+                                        <Select value={delimiter} onValueChange={setDelimiter}>
+                                            <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value=",">Comma (CSV) (,)</SelectItem>
+                                                <SelectItem value="\t">Tab (TSV) (\t)</SelectItem>
+                                                <SelectItem value=";">Semicolon (;) (Default)</SelectItem>
+                                                <SelectItem value="|">Pipe (|)</SelectItem>
+                                                <SelectItem value=":">Colon (:)</SelectItem>
+                                                <SelectItem value="/">Slash (/)</SelectItem>
+                                                <SelectItem value="#">Octothorpe (#)</SelectItem>
+                                                <SelectItem value="~">Tilde (~)</SelectItem>
+                                                <SelectItem value="-">Dash (-)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -299,4 +311,5 @@ export function Converter() {
             </div>
         </div>
     );
-}
+
+    
