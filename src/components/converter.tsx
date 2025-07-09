@@ -434,10 +434,15 @@ export function Converter({ dictionary }: ConverterProps) {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                              <CardTitle>{dictionary.outputCardTitle}</CardTitle>
-                             <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting}>
-                                <Copy className="mr-2 h-4 w-4" />
-                                {dictionary.copyButton}
-                            </Button>
+                             <div className="flex items-center gap-2">
+                                <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting}>
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    {dictionary.copyButton}
+                                </Button>
+                                <a href="https://www.buymeacoffee.com/xtfyjwvsyv" target="_blank" rel="noopener noreferrer">
+                                    <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=xtfyjwvsyv&button_colour=5F7FFF&font_colour=ffffff&font_family=Bree&outline_colour=000000&coffee_colour=FFDD00" alt="Buy me a beer" className="h-9" />
+                                </a>
+                             </div>
                         </div>
                         <CardDescription>{outputDescription}</CardDescription>
                     </CardHeader>
