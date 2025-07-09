@@ -396,7 +396,7 @@ export function Converter({ dictionary }: ConverterProps) {
         
         const bodyContent = bodyRows.map(row => renderRow(row, 'td')).join(nl);
         if(useTableHeadStructure && bodyRows.length > 0) {
-             html += `<tbody>${nl}${bodyContent}${nl}</tbody>${nl}`;
+             html += `<tbody>${nl}${bodyContent}${nl}<\/tbody>${nl}`;
         } else if (bodyRows.length > 0) {
             html += bodyContent + nl;
         }
@@ -447,7 +447,17 @@ export function Converter({ dictionary }: ConverterProps) {
         
         const node = imagePreviewRef.current;
         try {
-            const dataUrl = await htmlToImage.toPng(node);
+            const dataUrl = await htmlToImage.toPng(node, {
+                // Ensure all styles are loaded before taking the screenshot
+                style: {
+                    margin: '0',
+                },
+                // Wait for images and fonts to load
+                fetchRequest: {
+                    mode: 'cors',
+                    credentials: 'omit',
+                },
+            });
             return dataUrl;
         } catch (error) {
             console.error('oops, something went wrong!', error);
@@ -643,7 +653,7 @@ export function Converter({ dictionary }: ConverterProps) {
         return (
              <div 
                 ref={imagePreviewRef} 
-                className="p-4"
+                className="absolute -left-[9999px] -top-[9999px] p-4"
                 style={{ 
                     padding: `${pngPadding[0]}px`,
                     backgroundColor: pngBgColor,
@@ -1086,9 +1096,7 @@ export function Converter({ dictionary }: ConverterProps) {
                                         <Label htmlFor="png-font-size">{dictionary.png.fontSize} ({pngFontSize[0]}px)</Label>
                                         <Slider id="png-font-size" value={pngFontSize} onValueChange={setPngFontSize} min={8} max={24} step={1} />
                                     </div>
-                                    <div className="hidden">
-                                        <PngPreviewTable />
-                                    </div>
+                                    <PngPreviewTable />
                                 </div>
                             )}
 
