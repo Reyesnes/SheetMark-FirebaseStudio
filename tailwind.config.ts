@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        sans: ['DM Sans', 'sans-serif'],
+        serif: ['ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        mono: ['Space Mono', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -70,6 +70,16 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        '2xs': '4px 4px 0px 0px hsl(0 0% 0% / 0.50)',
+        'xs': '4px 4px 0px 0px hsl(0 0% 0% / 0.50)',
+        'sm': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00)',
+        'DEFAULT': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00)',
+        'md': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 2px 4px -1px hsl(0 0% 0% / 1.00)',
+        'lg': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 4px 6px -1px hsl(0 0% 0% / 1.00)',
+        'xl': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 8px 10px -1px hsl(0 0% 0% / 1.00)',
+        '2xl': '4px 4px 0px 0px hsl(0 0% 0% / 2.50)',
       },
       keyframes: {
         'accordion-down': {

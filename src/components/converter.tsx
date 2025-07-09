@@ -153,11 +153,11 @@ export function Converter() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <Card className="w-full">
+            <Card className="w-full shadow-md">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                         <span>Datos de Entrada</span>
-                        <Button variant="outline" size="sm" onClick={handleUploadClick}>
+                        <Button variant="outline" size="sm" onClick={handleUploadClick} className="shadow-sm">
                             <Upload className="mr-2 h-4 w-4" />
                             Subir Archivo
                         </Button>
@@ -178,7 +178,7 @@ export function Converter() {
                         value={inputData}
                         onChange={(e) => setInputData(e.target.value)}
                         placeholder="Pega aquí los datos de tu hoja de cálculo (separados por comas o tabulaciones)..."
-                        className="min-h-[300px] font-mono text-sm"
+                        className="min-h-[300px] font-mono text-sm shadow-inner"
                         aria-label="Área de texto para datos de entrada"
                     />
                 </CardContent>
@@ -194,11 +194,11 @@ export function Converter() {
                         )}
                     </div>
                 </div>
-                <Card className="w-full">
+                <Card className="w-full shadow-md">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                              <CardTitle>Salida</CardTitle>
-                             <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting}>
+                             <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting} className="shadow-sm">
                                 <Copy className="mr-2 h-4 w-4" />
                                 Copiar
                             </Button>
@@ -213,26 +213,31 @@ export function Converter() {
                     </CardHeader>
                     <CardContent>
                         {outputType === 'csv' && (
-                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-4 p-4 border rounded-lg bg-card">
+                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-4 p-4 border rounded-lg bg-card shadow-sm">
                                 <div className="flex items-center space-x-2 pt-5 sm:pt-0 sm:items-end">
                                     <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
                                     <Label htmlFor="double-quotes" className="cursor-pointer leading-none">Usar comillas dobles</Label>
                                 </div>
                                 <div className="grid gap-1.5">
-                                    <Label htmlFor="delimiter">Delimitador</Label>
+                                    <Label htmlFor="delimiter">Delimitador de Valor</Label>
                                     <Select value={delimiter} onValueChange={setDelimiter}>
-                                        <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger id="delimiter" className="bg-background shadow-sm"><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value=",">Coma (,)</SelectItem>
-                                            <SelectItem value=";">Punto y coma (;)</SelectItem>
-                                            <SelectItem value="\t">Tabulación</SelectItem>
+                                            <SelectItem value=",">Comma (CSV)</SelectItem>
+                                            <SelectItem value="\t">Tab (TSV)</SelectItem>
+                                            <SelectItem value=";">Semicolon (CSV French)</SelectItem>
+                                            <SelectItem value="\n">Newline</SelectItem>
+                                            <SelectItem value=":">Colon (:)</SelectItem>
+                                            <SelectItem value="|">Pipe (|)</SelectItem>
+                                            <SelectItem value="/">Slash (/)</SelectItem>
+                                            <SelectItem value="#">Octothorpe (#)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="encoding">Codificación</Label>
                                     <Select value={encoding} onValueChange={setEncoding}>
-                                        <SelectTrigger id="encoding" className="bg-background"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger id="encoding" className="bg-background shadow-sm"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="UTF-8">UTF-8</SelectItem>
                                             <SelectItem value="ISO-8859-1">ISO-8859-1</SelectItem>
@@ -248,7 +253,7 @@ export function Converter() {
                             value={outputData}
                             readOnly
                             placeholder={outputType === 'markdown' ? "Tu tabla Markdown aparecerá aquí..." : "Tus datos CSV aparecerán aquí..."}
-                            className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
+                            className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300 shadow-inner"
                             aria-label="Área de texto para salida"
                         />
                     </CardContent>
