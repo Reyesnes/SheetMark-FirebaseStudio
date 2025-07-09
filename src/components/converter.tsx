@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useTransition, useEffect } from 'react';
+import * as htmlToImage from 'html-to-image';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 
 type ConverterProps = {
     dictionary: any;
@@ -23,10 +25,11 @@ export function Converter({ dictionary }: ConverterProps) {
     const [outputData, setOutputData] = useState('');
     const [isConverting, startTransition] = useTransition();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const imagePreviewRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
     // Common State
-    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql' | 'html'>('markdown');
+    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql' | 'html' | 'json' | 'png'>('markdown');
     const [encoding, setEncoding] = useState('UTF-8');
     const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
     const [firstHeader, setFirstHeader] = useState(true);
@@ -63,6 +66,17 @@ export function Converter({ dictionary }: ConverterProps) {
     const [tableClass, setTableClass] = useState('');
     const [tableId, setTableId] = useState('');
 
+    // JSON State
+    const [jsonFormat, setJsonFormat] = useState('array_objects'); // array_objects, array_arrays, object_objects
+    const [minifyJson, setMinifyJson] = useState(false);
+
+    // PNG State
+    const [pngTheme, setPngTheme] = useState('light');
+    const [pngPadding, setPngPadding] = useState([16]);
+    const [pngFontSize, setPngFontSize] = useState([14]);
+    const [pngShowBorders, setPngShowBorders] = useState(true);
+    const [pngBgColor, setPngBgColor] = useState('#ffffff');
+
 
     useEffect(() => {
         if (fileBuffer) {
@@ -79,6 +93,14 @@ export function Converter({ dictionary }: ConverterProps) {
             }
         }
     }, [encoding, fileBuffer, toast, dictionary]);
+
+    useEffect(() => {
+        if (pngTheme === 'light') {
+            setPngBgColor('#ffffff');
+        } else {
+            setPngBgColor('#333333');
+        }
+    }, [pngTheme]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputData(e.target.value);
@@ -382,36 +404,106 @@ export function Converter({ dictionary }: ConverterProps) {
         html += `</table>`;
         return html;
     };
+    
+    const convertToJson = (tableData: string[][]): string => {
+        if (!tableData || tableData.length === 0) return minifyJson ? '{}' : '{\n}';
+        const header = firstHeader ? tableData[0] : tableData[0].map((_, i) => `column_${i + 1}`);
+        const body = firstHeader ? tableData.slice(1) : tableData;
+        
+        let result: any;
+
+        switch (jsonFormat) {
+            case 'array_objects':
+                result = body.map(row => {
+                    const obj: { [key: string]: string } = {};
+                    header.forEach((key, i) => {
+                        obj[key] = row[i];
+                    });
+                    return obj;
+                });
+                break;
+            case 'array_arrays':
+                result = firstHeader ? tableData : [header, ...body];
+                break;
+            case 'object_objects':
+                result = {};
+                body.forEach((row, rowIndex) => {
+                    const obj: { [key: string]: string } = {};
+                    header.forEach((key, i) => {
+                        obj[key] = row[i];
+                    });
+                    result[`row_${rowIndex + 1}`] = obj;
+                });
+                break;
+            default:
+                result = [];
+        }
+
+        return JSON.stringify(result, null, minifyJson ? 0 : 2);
+    };
+
+    const convertToPng = async (tableData: string[][]): Promise<string> => {
+        if (!tableData || tableData.length === 0 || !imagePreviewRef.current) return '';
+        
+        const node = imagePreviewRef.current;
+        try {
+            const dataUrl = await htmlToImage.toPng(node);
+            return dataUrl;
+        } catch (error) {
+            console.error('oops, something went wrong!', error);
+            toast({
+                title: dictionary.toast.conversionErrorTitle,
+                description: dictionary.png.conversionError,
+                variant: "destructive"
+            });
+            return '';
+        }
+    };
+
+    const performConversion = async () => {
+        if (!inputData.trim()) {
+            setOutputData('');
+            return;
+        }
+        try {
+            const table = parseInput(inputData);
+            if (outputType === 'markdown') {
+                setOutputData(convertToMarkdown(table));
+            } else if (outputType === 'csv') {
+                setOutputData(convertToCsv(table));
+            } else if (outputType === 'sql') {
+                setOutputData(convertToSql(table));
+            } else if (outputType === 'html') {
+                setOutputData(convertToHtml(table));
+            } else if (outputType === 'json') {
+                setOutputData(convertToJson(table));
+            } else if (outputType === 'png') {
+                 const pngDataUrl = await convertToPng(table);
+                 setOutputData(pngDataUrl);
+            }
+        } catch (error) {
+            console.error("Conversion Error:", error);
+            toast({
+                title: dictionary.toast.conversionErrorTitle,
+                description: dictionary.toast.conversionErrorDescription,
+                variant: "destructive"
+            });
+            setOutputData('');
+        }
+    };
 
 
     useEffect(() => {
         startTransition(() => {
-            if (!inputData.trim()) {
-                setOutputData('');
-                return;
-            }
-            try {
-                const table = parseInput(inputData);
-                if (outputType === 'markdown') {
-                    setOutputData(convertToMarkdown(table));
-                } else if (outputType === 'csv') {
-                    setOutputData(convertToCsv(table));
-                } else if (outputType === 'sql') {
-                    setOutputData(convertToSql(table));
-                } else if (outputType === 'html') {
-                    setOutputData(convertToHtml(table));
-                }
-            } catch (error) {
-                console.error("Conversion Error:", error);
-                toast({
-                    title: dictionary.toast.conversionErrorTitle,
-                    description: dictionary.toast.conversionErrorDescription,
-                    variant: "destructive"
-                });
-                setOutputData('');
-            }
+            performConversion();
         });
-    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId]);
+    }, [
+        inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, 
+        prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, 
+        multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, 
+        useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId,
+        jsonFormat, minifyJson, pngTheme, pngPadding, pngFontSize, pngShowBorders, pngBgColor
+    ]);
 
 
     const handleCopy = () => {
@@ -423,12 +515,22 @@ export function Converter({ dictionary }: ConverterProps) {
             });
             return;
         }
+        if (outputType === 'png') {
+             toast({
+                title: dictionary.png.copyNotSupportedTitle,
+                description: dictionary.png.copyNotSupportedDescription,
+                variant: "destructive"
+            });
+            return;
+        }
+
         navigator.clipboard.writeText(outputData);
         let description = '';
         if (outputType === 'markdown') description = dictionary.toast.copiedDescriptionMarkdown;
         else if (outputType === 'csv') description = dictionary.toast.copiedDescriptionCsv;
         else if (outputType === 'sql') description = dictionary.toast.copiedDescriptionSql;
         else if (outputType === 'html') description = dictionary.toast.copiedDescriptionHtml;
+        else if (outputType === 'json') description = dictionary.toast.copiedDescriptionJson;
 
 
         toast({ 
@@ -451,20 +553,30 @@ export function Converter({ dictionary }: ConverterProps) {
             markdown: 'md',
             csv: 'csv',
             sql: 'sql',
-            html: 'html'
+            html: 'html',
+            json: 'json',
+            png: 'png'
         };
         const fileExtension = fileExtensionMap[outputType];
         const fileName = `sheetmark_output.${fileExtension}`;
         
-        const blob = new Blob([outputData], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = url;
+
+        if (outputType === 'png') {
+            link.href = outputData;
+        } else {
+            const blob = new Blob([outputData], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+        }
+        
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        if (outputType !== 'png') {
+            URL.revokeObjectURL(link.href);
+        }
 
         toast({
             title: dictionary.toast.downloadedTitle,
@@ -504,23 +616,68 @@ export function Converter({ dictionary }: ConverterProps) {
         fileInputRef.current?.click();
     };
 
-    const outputDescription = outputType === 'markdown' 
-        ? dictionary.outputDescriptionMarkdown
-        : outputType === 'csv'
-        ? dictionary.outputDescriptionCsv
-        : outputType === 'sql'
-        ? dictionary.outputDescriptionSql
-        : dictionary.outputDescriptionHtml;
+    const outputDescription = {
+        markdown: dictionary.outputDescriptionMarkdown,
+        csv: dictionary.outputDescriptionCsv,
+        sql: dictionary.outputDescriptionSql,
+        html: dictionary.outputDescriptionHtml,
+        json: dictionary.json.outputDescriptionJson,
+        png: dictionary.png.outputDescriptionPng
+    }[outputType];
         
-    const outputPlaceholder = outputType === 'markdown' 
-        ? dictionary.outputPlaceholderMarkdown
-        : outputType === 'csv'
-        ? dictionary.outputPlaceholderCsv
-        : outputType === 'sql'
-        ? dictionary.outputPlaceholderSql
-        : outputType === 'html'
-        ? dictionary.outputPlaceholderHtml
-        : '';
+    const outputPlaceholder = {
+        markdown: dictionary.outputPlaceholderMarkdown,
+        csv: dictionary.outputPlaceholderCsv,
+        sql: dictionary.outputPlaceholderSql,
+        html: dictionary.outputPlaceholderHtml,
+        json: dictionary.json.outputPlaceholderJson,
+        png: dictionary.png.outputPlaceholderPng
+    }[outputType];
+
+    const PngPreviewTable = () => {
+        const tableData = parseInput(inputData);
+        if (!tableData || tableData.length === 0) return null;
+        const headerRow = firstHeader ? tableData[0] : [];
+        const bodyRows = firstHeader ? tableData.slice(1) : tableData;
+
+        return (
+             <div 
+                ref={imagePreviewRef} 
+                className="p-4"
+                style={{ 
+                    padding: `${pngPadding[0]}px`,
+                    backgroundColor: pngBgColor,
+                }}
+            >
+                <table 
+                    className="border-collapse w-full" 
+                    style={{ 
+                        fontSize: `${pngFontSize[0]}px`,
+                        color: pngTheme === 'light' ? '#000000' : '#ffffff',
+                    }}
+                >
+                    {firstHeader && (
+                        <thead>
+                            <tr>
+                                {headerRow.map((cell, i) => (
+                                    <th key={i} className={`p-2 text-left ${pngShowBorders ? 'border' : ''}`}>{cell}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                    )}
+                    <tbody>
+                        {bodyRows.map((row, i) => (
+                            <tr key={i}>
+                                {row.map((cell, j) => (
+                                    <td key={j} className={`p-2 ${pngShowBorders ? 'border' : ''}`}>{cell}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -609,12 +766,14 @@ export function Converter({ dictionary }: ConverterProps) {
                             <p className="text-xs text-muted-foreground">{dictionary.encodingDescription}</p>
                         </div>
 
-                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv' | 'sql' | 'html')} className="w-full">
-                            <TabsList className="grid w-full grid-cols-4">
+                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as any)} className="w-full">
+                            <TabsList className="grid w-full grid-cols-6">
                                 <TabsTrigger value="markdown">{dictionary.outputTypeMarkdown}</TabsTrigger>
                                 <TabsTrigger value="csv">{dictionary.outputTypeCsv}</TabsTrigger>
                                 <TabsTrigger value="sql">{dictionary.outputTypeSql}</TabsTrigger>
                                 <TabsTrigger value="html">{dictionary.outputTypeHtml}</TabsTrigger>
+                                <TabsTrigger value="json">{dictionary.json.outputTypeJson}</TabsTrigger>
+                                <TabsTrigger value="png">{dictionary.png.outputTypePng}</TabsTrigger>
                             </TabsList>
                             {outputType === 'markdown' && (
                             <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
@@ -857,18 +1016,106 @@ export function Converter({ dictionary }: ConverterProps) {
                                      </div>
                                 </div>
                             )}
+
+                             {outputType === 'json' && (
+                                <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                                     <p className="text-sm font-medium">{dictionary.json.jsonOptionsTitle}</p>
+                                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="first-header-json" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="first-header-json">{dictionary.firstHeader}</Label>
+                                                 <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.json.firstHeaderTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="minify-json" checked={minifyJson} onCheckedChange={(c) => setMinifyJson(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="minify-json">{dictionary.json.minifyJson}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.json.minifyJsonTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                     </div>
+                                     <div className="grid gap-1.5">
+                                        <Label htmlFor="json-format">{dictionary.json.jsonFormat}</Label>
+                                        <Select value={jsonFormat} onValueChange={setJsonFormat}>
+                                            <SelectTrigger id="json-format" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="array_objects">{dictionary.json.formatArrayObjects}</SelectItem>
+                                                <SelectItem value="array_arrays">{dictionary.json.formatArrayArrays}</SelectItem>
+                                                <SelectItem value="object_objects">{dictionary.json.formatObjectObjects}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
+
+                            {outputType === 'png' && (
+                                <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                                    <p className="text-sm font-medium">{dictionary.png.pngOptionsTitle}</p>
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="png-theme">{dictionary.png.theme}</Label>
+                                            <Select value={pngTheme} onValueChange={setPngTheme}>
+                                                <SelectTrigger id="png-theme" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="light">{dictionary.png.themeLight}</SelectItem>
+                                                    <SelectItem value="dark">{dictionary.png.themeDark}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                             <div className="flex items-center gap-1">
+                                                <Label htmlFor="png-bg-color">{dictionary.png.backgroundColor}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.backgroundColorTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                            <Input id="png-bg-color" type="color" value={pngBgColor} onChange={(e) => setPngBgColor(e.target.value)} />
+                                        </div>
+                                         <div className="flex items-center space-x-2">
+                                            <Checkbox id="show-borders-png" checked={pngShowBorders} onCheckedChange={(c) => setPngShowBorders(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="show-borders-png">{dictionary.png.showBorders}</Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div className="grid gap-1.5">
+                                        <Label htmlFor="png-padding">{dictionary.png.padding} ({pngPadding[0]}px)</Label>
+                                        <Slider id="png-padding" value={pngPadding} onValueChange={setPngPadding} max={50} step={1} />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="png-font-size">{dictionary.png.fontSize} ({pngFontSize[0]}px)</Label>
+                                        <Slider id="png-font-size" value={pngFontSize} onValueChange={setPngFontSize} min={8} max={24} step={1} />
+                                    </div>
+                                    <div className="hidden">
+                                        <PngPreviewTable />
+                                    </div>
+                                </div>
+                            )}
+
                         </Tabs>
 
                         <div className="mt-4">
                             <Label htmlFor="output-data" className="sr-only">{dictionary.outputCardTitle}</Label>
-                            <Textarea
-                                id="output-data"
-                                value={outputData}
-                                readOnly
-                                placeholder={outputPlaceholder}
-                                className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
-                                aria-label="Área de texto para salida"
-                            />
+                            {outputType === 'png' ? (
+                                <div className="min-h-[300px] bg-muted/50 rounded-md flex items-center justify-center p-4">
+                                    {isConverting ? (
+                                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                                    ) : outputData ? (
+                                        <img src={outputData} alt={dictionary.png.previewAlt} className="max-w-full max-h-full object-contain" />
+                                    ) : (
+                                        <p className="text-muted-foreground">{outputPlaceholder}</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <Textarea
+                                    id="output-data"
+                                    value={outputData}
+                                    readOnly
+                                    placeholder={outputPlaceholder}
+                                    className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
+                                    aria-label="Área de texto para salida"
+                                />
+                            )}
                         </div>
                     </CardContent>
                 </Card>

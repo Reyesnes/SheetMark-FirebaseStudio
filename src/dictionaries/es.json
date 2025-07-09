@@ -1,9 +1,9 @@
 
 {
   "metadata": {
-    "title": "SheetMark - Convierte Hojas de Cálculo a Tablas Markdown",
-    "description": "Convierte fácilmente tus datos de hojas de cálculo de CSV, TSV o pegando directamente en una tabla Markdown limpia. Rápido, gratis y fácil de usar.",
-    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, sheetmark, hoja de calculo a markdown, csv a markdown"
+    "title": "SheetMark - Convierte Hojas de Cálculo a Markdown, JSON, PNG y Más",
+    "description": "Convierte fácilmente tus datos de hojas de cálculo de CSV, TSV o pegando directamente en una tabla Markdown, JSON, PNG o HTML. Rápido, gratis y fácil de usar.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, csv a png, sheetmark, hoja de calculo a markdown, csv a markdown"
   },
   "header": {
     "title": "SheetMark",
@@ -11,8 +11,8 @@
     "language": "Idioma"
   },
   "page": {
-    "title": "Convierte Hojas de Cálculo a Markdown",
-    "description": "Pega tus datos o sube un archivo CSV/TSV y obtén una tabla Markdown al instante."
+    "title": "Convierte Hojas de Cálculo a Múltiples Formatos",
+    "description": "Pega tus datos o sube un archivo y obtén una tabla en formato Markdown, CSV, SQL, HTML, JSON o PNG al instante."
   },
   "converter": {
     "inputCardTitle": "Datos de Entrada",
@@ -82,6 +82,37 @@
         "tableId": "ID de la Tabla",
         "tableIdTooltip": "ID para añadir a la etiqueta de la tabla."
     },
+    "json": {
+        "outputTypeJson": "JSON",
+        "jsonOptionsTitle": "Opciones de Salida JSON",
+        "minifyJson": "Minificar JSON",
+        "minifyJsonTooltip": "Elimina el espacio en blanco y los saltos de línea para un resultado compacto.",
+        "firstHeaderTooltip": "Usa la primera fila de datos como claves para los objetos JSON.",
+        "jsonFormat": "Formato JSON",
+        "formatArrayObjects": "Array de Objetos",
+        "formatArrayArrays": "Array de Arrays",
+        "formatObjectObjects": "Objeto de Objetos",
+        "outputDescriptionJson": "Aquí están tus datos en formato JSON.",
+        "outputPlaceholderJson": "Tus datos JSON aparecerán aquí..."
+    },
+    "png": {
+        "outputTypePng": "PNG",
+        "pngOptionsTitle": "Opciones de Salida PNG",
+        "theme": "Tema",
+        "themeLight": "Claro",
+        "themeDark": "Oscuro",
+        "backgroundColor": "Color de Fondo",
+        "backgroundColorTooltip": "Elige un color de fondo personalizado para la imagen.",
+        "showBorders": "Mostrar Bordes",
+        "padding": "Relleno (Padding)",
+        "fontSize": "Tamaño de Fuente",
+        "outputDescriptionPng": "Aquí está tu tabla como una imagen PNG.",
+        "outputPlaceholderPng": "La vista previa de tu imagen PNG aparecerá aquí...",
+        "previewAlt": "Vista previa de la salida PNG",
+        "copyNotSupportedTitle": "Copiar no Soportado",
+        "copyNotSupportedDescription": "No es posible copiar imágenes al portapapeles. Por favor, usa el botón de descargar.",
+        "conversionError": "No se pudo generar la imagen. Por favor, inténtalo de nuevo."
+    },
     "outputPlaceholderMarkdown": "Tu tabla Markdown aparecerá aquí...",
     "outputPlaceholderCsv": "Tus datos CSV aparecerán aquí...",
     "outputPlaceholderSql": "Tu script SQL aparecerá aquí...",
@@ -96,6 +127,7 @@
         "copiedDescriptionCsv": "Contenido CSV copiado al portapapeles.",
         "copiedDescriptionSql": "Script SQL copiado al portapapeles.",
         "copiedDescriptionHtml": "Código HTML copiado al portapapeles.",
+        "copiedDescriptionJson": "Datos JSON copiados al portapapeles.",
         "nothingToCopyTitle": "Nada que copiar",
         "nothingToCopyDescription": "La salida está vacía.",
         "fileUploadedTitle": "Archivo cargado",

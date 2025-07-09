@@ -1,9 +1,9 @@
 
 {
   "metadata": {
-    "title": "SheetMark - Convert Spreadsheets to Markdown Tables",
-    "description": "Easily convert your spreadsheet data from CSV, TSV, or by pasting directly into a clean Markdown table. Fast, free, and easy to use.",
-    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, sheetmark, hoja de calculo a markdown, csv a markdown"
+    "title": "SheetMark - Convert Spreadsheets to Markdown, JSON, PNG & More",
+    "description": "Easily convert your spreadsheet data from CSV, TSV, or by pasting directly into a clean Markdown, JSON, PNG, or HTML table. Fast, free, and easy to use.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, csv to png, sheetmark, hoja de calculo a markdown, csv a markdown"
   },
   "header": {
     "title": "SheetMark",
@@ -11,8 +11,8 @@
     "language": "Language"
   },
   "page": {
-    "title": "Convert Spreadsheets to Markdown",
-    "description": "Paste your data or upload a CSV/TSV file and get a Markdown table instantly."
+    "title": "Convert Spreadsheets to Multiple Formats",
+    "description": "Paste your data or upload a file and get a Markdown, CSV, SQL, HTML, JSON, or PNG table instantly."
   },
   "converter": {
     "inputCardTitle": "Input Data",
@@ -82,6 +82,37 @@
         "tableId": "Table ID",
         "tableIdTooltip": "ID to add to the table tag."
     },
+    "json": {
+        "outputTypeJson": "JSON",
+        "jsonOptionsTitle": "JSON Output Options",
+        "minifyJson": "Minify JSON",
+        "minifyJsonTooltip": "Remove extra whitespace and newlines for a compact output.",
+        "firstHeaderTooltip": "Use the first row of data as keys for the JSON objects.",
+        "jsonFormat": "JSON Format",
+        "formatArrayObjects": "Array of Objects",
+        "formatArrayArrays": "Array of Arrays",
+        "formatObjectObjects": "Object of Objects",
+        "outputDescriptionJson": "Here is your data in JSON format.",
+        "outputPlaceholderJson": "Your JSON data will appear here..."
+    },
+    "png": {
+        "outputTypePng": "PNG",
+        "pngOptionsTitle": "PNG Output Options",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "backgroundColor": "Background Color",
+        "backgroundColorTooltip": "Choose a custom background color for the image.",
+        "showBorders": "Show Borders",
+        "padding": "Padding",
+        "fontSize": "Font Size",
+        "outputDescriptionPng": "Here is your table as a PNG image.",
+        "outputPlaceholderPng": "Your PNG image preview will appear here...",
+        "previewAlt": "PNG output preview",
+        "copyNotSupportedTitle": "Copy Not Supported",
+        "copyNotSupportedDescription": "Copying images to the clipboard is not supported. Please use the download button.",
+        "conversionError": "Could not generate the image. Please try again."
+    },
     "outputPlaceholderMarkdown": "Your Markdown table will appear here...",
     "outputPlaceholderCsv": "Your CSV data will appear here...",
     "outputPlaceholderSql": "Your SQL script will appear here...",
@@ -96,6 +127,7 @@
         "copiedDescriptionCsv": "CSV content copied to clipboard.",
         "copiedDescriptionSql": "SQL script copied to clipboard.",
         "copiedDescriptionHtml": "HTML code copied to clipboard.",
+        "copiedDescriptionJson": "JSON data copied to clipboard.",
         "nothingToCopyTitle": "Nothing to copy",
         "nothingToCopyDescription": "The output is empty.",
         "fileUploadedTitle": "File uploaded",
