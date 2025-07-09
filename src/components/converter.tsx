@@ -239,12 +239,6 @@ export function Converter() {
                             </Button>
                         </div>
                         <CardDescription>{outputDescription}</CardDescription>
-                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv')} className="w-full pt-2">
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="markdown">Markdown</TabsTrigger>
-                                <TabsTrigger value="csv">CSV</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
                     </CardHeader>
                     <CardContent>
                         <div className="mb-4">
@@ -269,8 +263,15 @@ export function Converter() {
                             </div>
                         </div>
 
+                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv')} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="markdown">Markdown</TabsTrigger>
+                                <TabsTrigger value="csv">CSV</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+
                         {outputType === 'csv' && (
-                           <div className="mb-4 p-4 border rounded-lg bg-card">
+                           <div className="mt-4 p-4 border rounded-lg bg-card">
                                 <p className="text-sm font-medium mb-4">Opciones de Salida CSV</p>
                                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                     <div className="flex items-center space-x-2">
@@ -297,19 +298,20 @@ export function Converter() {
                                 </div>
                             </div>
                         )}
-                        <Label htmlFor="output-data" className="sr-only">Salida</Label>
-                        <Textarea
-                            id="output-data"
-                            value={outputData}
-                            readOnly
-                            placeholder={outputType === 'markdown' ? "Tu tabla Markdown aparecerá aquí..." : "Tus datos CSV aparecerán aquí..."}
-                            className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
-                            aria-label="Área de texto para salida"
-                        />
+                        <div className="mt-4">
+                            <Label htmlFor="output-data" className="sr-only">Salida</Label>
+                            <Textarea
+                                id="output-data"
+                                value={outputData}
+                                readOnly
+                                placeholder={outputType === 'markdown' ? "Tu tabla Markdown aparecerá aquí..." : "Tus datos CSV aparecerán aquí..."}
+                                className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
+                                aria-label="Área de texto para salida"
+                            />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
-
-    
+}
