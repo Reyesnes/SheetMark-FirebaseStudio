@@ -104,7 +104,11 @@
         "backgroundColor": "Color de Fondo",
         "backgroundColorTooltip": "Elige un color de fondo personalizado para la imagen.",
         "showBorders": "Mostrar Bordes",
+        "boldHeader": "Encabezado en Negrita",
+        "boldHeaderTooltip": "Pone la fila del encabezado en negrita.",
+        "fontFamily": "Familia de Fuentes",
         "padding": "Relleno (Padding)",
+        "cellPadding": "Relleno de Celda",
         "fontSize": "Tamaño de Fuente",
         "outputDescriptionPng": "Aquí está tu tabla como una imagen PNG.",
         "outputPlaceholderPng": "La vista previa de tu imagen PNG aparecerá aquí...",
@@ -147,3 +151,5 @@
     "buyMeAPizza": "Invítame a una pizza"
   }
 }
+
+    

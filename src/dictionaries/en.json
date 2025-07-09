@@ -104,7 +104,11 @@
         "backgroundColor": "Background Color",
         "backgroundColorTooltip": "Choose a custom background color for the image.",
         "showBorders": "Show Borders",
+        "boldHeader": "Bold Header",
+        "boldHeaderTooltip": "Make the header row bold.",
+        "fontFamily": "Font Family",
         "padding": "Padding",
+        "cellPadding": "Cell Padding",
         "fontSize": "Font Size",
         "outputDescriptionPng": "Here is your table as a PNG image.",
         "outputPlaceholderPng": "Your PNG image preview will appear here...",
@@ -147,3 +151,5 @@
     "buyMeAPizza": "Buy me a pizza"
   }
 }
+
+    

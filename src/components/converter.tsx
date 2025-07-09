@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useTransition, useEffect } from 'react';
@@ -73,8 +72,11 @@ export function Converter({ dictionary }: ConverterProps) {
     // PNG State
     const [pngTheme, setPngTheme] = useState('light');
     const [pngPadding, setPngPadding] = useState([16]);
+    const [pngCellPadding, setPngCellPadding] = useState([8]);
     const [pngFontSize, setPngFontSize] = useState([14]);
     const [pngShowBorders, setPngShowBorders] = useState(true);
+    const [pngBoldHeader, setPngBoldHeader] = useState(true);
+    const [pngFontFamily, setPngFontFamily] = useState('sans-serif');
     const [pngBgColor, setPngBgColor] = useState('#ffffff');
 
 
@@ -396,7 +398,7 @@ export function Converter({ dictionary }: ConverterProps) {
         
         const bodyContent = bodyRows.map(row => renderRow(row, 'td')).join(nl);
         if(useTableHeadStructure && bodyRows.length > 0) {
-             html += `<tbody>${nl}${bodyContent}${nl}<\/tbody>${nl}`;
+             html += `<tbody>${nl}${bodyContent}${nl}</tbody>${nl}`;
         } else if (bodyRows.length > 0) {
             html += bodyContent + nl;
         }
@@ -512,7 +514,8 @@ export function Converter({ dictionary }: ConverterProps) {
         prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, 
         multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, 
         useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId,
-        jsonFormat, minifyJson, pngTheme, pngPadding, pngFontSize, pngShowBorders, pngBgColor
+        jsonFormat, minifyJson, pngTheme, pngPadding, pngFontSize, pngShowBorders, pngBgColor,
+        pngCellPadding, pngBoldHeader, pngFontFamily
     ]);
 
 
@@ -650,13 +653,24 @@ export function Converter({ dictionary }: ConverterProps) {
         const headerRow = firstHeader ? tableData[0] : [];
         const bodyRows = firstHeader ? tableData.slice(1) : tableData;
 
+        const cellStyle = {
+            padding: `${pngCellPadding[0]}px`,
+            border: pngShowBorders ? `1px solid ${pngTheme === 'light' ? '#000000' : '#ffffff'}` : 'none',
+        };
+
+        const headerCellStyle = {
+            ...cellStyle,
+            fontWeight: pngBoldHeader ? 'bold' : 'normal',
+        };
+
         return (
              <div 
                 ref={imagePreviewRef} 
-                className="absolute -left-[9999px] -top-[9999px] p-4"
+                className="absolute -left-[9999px] -top-[9999px] p-4 bg-background"
                 style={{ 
                     padding: `${pngPadding[0]}px`,
                     backgroundColor: pngBgColor,
+                    fontFamily: pngFontFamily,
                 }}
             >
                 <table 
@@ -670,7 +684,7 @@ export function Converter({ dictionary }: ConverterProps) {
                         <thead>
                             <tr>
                                 {headerRow.map((cell, i) => (
-                                    <th key={i} className={`p-2 text-left ${pngShowBorders ? 'border' : ''}`}>{cell}</th>
+                                    <th key={i} style={headerCellStyle} className="p-2 text-left">{cell}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -679,7 +693,7 @@ export function Converter({ dictionary }: ConverterProps) {
                         {bodyRows.map((row, i) => (
                             <tr key={i}>
                                 {row.map((cell, j) => (
-                                    <td key={j} className={`p-2 ${pngShowBorders ? 'border' : ''}`}>{cell}</td>
+                                    <td key={j} style={cellStyle} className="p-2">{cell}</td>
                                 ))}
                             </tr>
                         ))}
@@ -947,8 +961,7 @@ export function Converter({ dictionary }: ConverterProps) {
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Info className="h-4 w-4 text-muted-foreground" />
-                                                        </TooltipTrigger>
+                                                            <Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
                                                         <TooltipContent>
                                                             <p>{dictionary.sql.primaryKeyTooltip}</p>
                                                         </TooltipContent>
@@ -1087,10 +1100,36 @@ export function Converter({ dictionary }: ConverterProps) {
                                                 <Label htmlFor="show-borders-png">{dictionary.png.showBorders}</Label>
                                             </div>
                                         </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="bold-header-png" checked={pngBoldHeader} onCheckedChange={(c) => setPngBoldHeader(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="bold-header-png">{dictionary.png.boldHeader}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.boldHeaderTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="png-font-family">{dictionary.png.fontFamily}</Label>
+                                        <Select value={pngFontFamily} onValueChange={setPngFontFamily}>
+                                            <SelectTrigger id="png-font-family" className="bg-background" style={{fontFamily: pngFontFamily}}><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="sans-serif" style={{fontFamily: 'sans-serif'}}>Sans-serif</SelectItem>
+                                                <SelectItem value="serif" style={{fontFamily: 'serif'}}>Serif</SelectItem>
+                                                <SelectItem value="monospace" style={{fontFamily: 'monospace'}}>Monospace</SelectItem>
+                                                <SelectItem value="Arial, sans-serif" style={{fontFamily: 'Arial, sans-serif'}}>Arial</SelectItem>
+                                                <SelectItem value="'Times New Roman', serif" style={{fontFamily: "'Times New Roman', serif"}}>Times New Roman</SelectItem>
+                                                <SelectItem value="'Courier New', monospace" style={{fontFamily: "'Courier New', monospace"}}>Courier New</SelectItem>
+                                                <SelectItem value="Verdana, sans-serif" style={{fontFamily: 'Verdana, sans-serif'}}>Verdana</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                      <div className="grid gap-1.5">
                                         <Label htmlFor="png-padding">{dictionary.png.padding} ({pngPadding[0]}px)</Label>
                                         <Slider id="png-padding" value={pngPadding} onValueChange={setPngPadding} max={50} step={1} />
+                                    </div>
+                                     <div className="grid gap-1.5">
+                                        <Label htmlFor="png-cell-padding">{dictionary.png.cellPadding} ({pngCellPadding[0]}px)</Label>
+                                        <Slider id="png-cell-padding" value={pngCellPadding} onValueChange={setPngCellPadding} max={30} step={1} />
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="png-font-size">{dictionary.png.fontSize} ({pngFontSize[0]}px)</Label>
