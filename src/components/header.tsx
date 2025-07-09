@@ -17,7 +17,7 @@ export function Header({ dictionary }: HeaderProps) {
                 <h1 className="text-2xl font-bold font-headline text-primary">{dictionary.title}</h1>
                 <div className="flex items-center gap-2 md:gap-4">
                     <Button asChild variant="ghost" className="hidden sm:inline-flex">
-                        <a href="https://buymeacoffee.com/xtfyjwvsyv" target="_blank" rel="noopener noreferrer">
+                        <a href="https://bit.ly/44EVg9i" target="_blank" rel="noopener noreferrer">
                             <Coffee className="mr-2 h-4 w-4" /> {dictionary.buyMeACoffee}
                         </a>
                     </Button>

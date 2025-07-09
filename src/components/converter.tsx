@@ -439,7 +439,7 @@ export function Converter({ dictionary }: ConverterProps) {
                                     <Copy className="mr-2 h-4 w-4" />
                                     {dictionary.copyButton}
                                 </Button>
-                                <a href="https://www.buymeacoffee.com/xtfyjwvsyv" target="_blank" rel="noopener noreferrer">
+                                <a href="https://bit.ly/44EVg9i" target="_blank" rel="noopener noreferrer">
                                     <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=xtfyjwvsyv&button_colour=5F7FFF&font_colour=ffffff&font_family=Bree&outline_colour=000000&coffee_colour=FFDD00" alt="Buy me a beer" className="h-9" />
                                 </a>
                              </div>
