@@ -27,6 +27,7 @@
     "outputTypeMarkdown": "Markdown",
     "outputTypeCsv": "CSV",
     "outputTypeSql": "SQL",
+    "outputTypeHtml": "HTML",
     "markdownOptionsTitle": "Opciones de Salida Markdown",
     "firstHeader": "Primera Fila como Encabezado",
     "prettyMarkdown": "Tabla Markdown Estilizada",
@@ -64,17 +65,37 @@
       "primaryKey": "Clave Primaria",
       "primaryKeyTooltip": "Especifica el nombre del campo de Clave Primaria para la sentencia CREATE TABLE"
     },
+    "html": {
+        "htmlOptionsTitle": "Opciones de Salida HTML",
+        "divTable": "Tabla con Divs",
+        "divTableTooltip": "Usa divs con clases en lugar de etiquetas de tabla.",
+        "minifyCode": "Minificar Código",
+        "minifyCodeTooltip": "Elimina espacios en blanco y saltos de línea adicionales.",
+        "tableHeadStructure": "Estructura de Encabezado",
+        "tableHeadStructureTooltip": "Usa etiquetas <thead> y <tbody>.",
+        "columnHeader": "Encabezado de Columna",
+        "columnHeaderTooltip": "Trata la primera fila como encabezados de tabla (<th>).",
+        "tableCaption": "Título de la Tabla",
+        "tableCaptionTooltip": "Añade un elemento <caption> a la tabla.",
+        "tableClass": "Clase de la Tabla",
+        "tableClassTooltip": "Clase(s) CSS para añadir a la etiqueta de la tabla.",
+        "tableId": "ID de la Tabla",
+        "tableIdTooltip": "ID para añadir a la etiqueta de la tabla."
+    },
     "outputPlaceholderMarkdown": "Tu tabla Markdown aparecerá aquí...",
     "outputPlaceholderCsv": "Tus datos CSV aparecerán aquí...",
     "outputPlaceholderSql": "Tu script SQL aparecerá aquí...",
+    "outputPlaceholderHtml": "Tu código de tabla HTML aparecerá aquí...",
     "outputDescriptionMarkdown": "Aquí está tu tabla en formato Markdown.",
     "outputDescriptionCsv": "Aquí están tus datos en formato CSV.",
     "outputDescriptionSql": "Aquí están tus datos como un script SQL.",
+    "outputDescriptionHtml": "Aquí está tu tabla en formato HTML.",
     "toast": {
         "copiedTitle": "¡Copiado!",
         "copiedDescriptionMarkdown": "Contenido Markdown copiado al portapapeles.",
         "copiedDescriptionCsv": "Contenido CSV copiado al portapapeles.",
         "copiedDescriptionSql": "Script SQL copiado al portapapeles.",
+        "copiedDescriptionHtml": "Código HTML copiado al portapapeles.",
         "nothingToCopyTitle": "Nada que copiar",
         "nothingToCopyDescription": "La salida está vacía.",
         "fileUploadedTitle": "Archivo cargado",
@@ -94,5 +115,3 @@
     "buyMeAPizza": "Invítame a una pizza"
   }
 }
-
-    

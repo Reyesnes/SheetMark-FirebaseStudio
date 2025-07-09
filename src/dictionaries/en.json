@@ -27,6 +27,7 @@
     "outputTypeMarkdown": "Markdown",
     "outputTypeCsv": "CSV",
     "outputTypeSql": "SQL",
+    "outputTypeHtml": "HTML",
     "markdownOptionsTitle": "Markdown Output Options",
     "firstHeader": "First Row as Header",
     "prettyMarkdown": "Pretty-Print Markdown",
@@ -64,17 +65,37 @@
       "primaryKey": "Primary Key",
       "primaryKeyTooltip": "Specify Primary Key Field Name For CREATE TABLE statement"
     },
+    "html": {
+        "htmlOptionsTitle": "HTML Output Options",
+        "divTable": "Div Table",
+        "divTableTooltip": "Use divs with classes instead of table tags.",
+        "minifyCode": "Minify Code",
+        "minifyCodeTooltip": "Remove extra whitespace and newlines.",
+        "tableHeadStructure": "Table Head Structure",
+        "tableHeadStructureTooltip": "Use <thead> and <tbody> tags.",
+        "columnHeader": "Column Header",
+        "columnHeaderTooltip": "Treat the first row as table headers (<th>).",
+        "tableCaption": "Table Caption",
+        "tableCaptionTooltip": "Add a <caption> element to the table.",
+        "tableClass": "Table's Class",
+        "tableClassTooltip": "CSS class(es) to add to the table tag.",
+        "tableId": "Table ID",
+        "tableIdTooltip": "ID to add to the table tag."
+    },
     "outputPlaceholderMarkdown": "Your Markdown table will appear here...",
     "outputPlaceholderCsv": "Your CSV data will appear here...",
     "outputPlaceholderSql": "Your SQL script will appear here...",
+    "outputPlaceholderHtml": "Your HTML table code will appear here...",
     "outputDescriptionMarkdown": "Here is your table in Markdown format.",
     "outputDescriptionCsv": "Here is your data in CSV format.",
     "outputDescriptionSql": "Here is your data as an SQL script.",
+    "outputDescriptionHtml": "Here is your table in HTML format.",
     "toast": {
         "copiedTitle": "Copied!",
         "copiedDescriptionMarkdown": "Markdown content copied to clipboard.",
         "copiedDescriptionCsv": "CSV content copied to clipboard.",
         "copiedDescriptionSql": "SQL script copied to clipboard.",
+        "copiedDescriptionHtml": "HTML code copied to clipboard.",
         "nothingToCopyTitle": "Nothing to copy",
         "nothingToCopyDescription": "The output is empty.",
         "fileUploadedTitle": "File uploaded",
@@ -94,5 +115,3 @@
     "buyMeAPizza": "Buy me a pizza"
   }
 }
-
-    

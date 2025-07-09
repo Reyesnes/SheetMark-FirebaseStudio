@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Upload, Copy, ChevronsRight, Loader2, Info, Download } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -26,9 +26,10 @@ export function Converter({ dictionary }: ConverterProps) {
     const { toast } = useToast();
 
     // Common State
-    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql'>('markdown');
+    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql' | 'html'>('markdown');
     const [encoding, setEncoding] = useState('UTF-8');
     const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
+    const [firstHeader, setFirstHeader] = useState(true);
 
     // CSV State
     const [useDoubleQuotes, setUseDoubleQuotes] = useState(true);
@@ -37,7 +38,6 @@ export function Converter({ dictionary }: ConverterProps) {
     
     // Markdown State
     const [escapeChars, setEscapeChars] = useState(false);
-    const [firstHeader, setFirstHeader] = useState(true);
     const [prettyMarkdown, setPrettyMarkdown] = useState(true);
     const [simpleMarkdown, setSimpleMarkdown] = useState(false);
     const [addLineNumbers, setAddLineNumbers] = useState(false);
@@ -53,6 +53,16 @@ export function Converter({ dictionary }: ConverterProps) {
     const [databaseType, setDatabaseType] = useState('MySQL');
     const [tableName, setTableName] = useState('tableName');
     const [primaryKey, setPrimaryKey] = useState('');
+
+    // HTML State
+    const [useDivTable, setUseDivTable] = useState(false);
+    const [minifyCode, setMinifyCode] = useState(false);
+    const [useTableHeadStructure, setUseTableHeadStructure] = useState(true);
+    const [useTableCaption, setUseTableCaption] = useState(false);
+    const [tableCaptionText, setTableCaptionText] = useState('My Table Caption');
+    const [tableClass, setTableClass] = useState('');
+    const [tableId, setTableId] = useState('');
+
 
     useEffect(() => {
         if (fileBuffer) {
@@ -294,6 +304,86 @@ export function Converter({ dictionary }: ConverterProps) {
         return sqlOutput.join('\n\n');
     };
 
+    const convertToHtml = (tableData: string[][]): string => {
+        if (!tableData || tableData.length === 0 || !tableData[0]) return '';
+
+        const nl = minifyCode ? '' : '\n';
+        const indent = minifyCode ? '' : '  ';
+
+        const headerRow = firstHeader ? tableData[0] : [];
+        const bodyRows = firstHeader ? tableData.slice(1) : tableData;
+
+        const renderRow = (row: string[], cellType: 'th' | 'td') => {
+            const cells = row.map(cell => `${indent.repeat(2)}<${cellType}>${cell}</${cellType}>`).join(nl);
+            return `${indent}<tr>${nl}${cells}${nl}${indent}</tr>`;
+        };
+        
+        const renderDivRow = (row: string[], isHeader: boolean) => {
+            const cellClass = isHeader ? ' class="table-header-cell"' : ' class="table-cell"';
+            const cells = row.map(cell => `${indent.repeat(2)}<div${cellClass}>${cell}</div>`).join(nl);
+            return `${indent}<div class="table-row">${nl}${cells}${nl}${indent}</div>`;
+        }
+
+        if (useDivTable) {
+            const tableAttrs = [];
+            if (tableId) tableAttrs.push(`id="${tableId}"`);
+            if (tableClass) tableAttrs.push(`class="table ${tableClass}"`);
+
+            let html = `<div ${tableAttrs.join(' ')}>${nl}`;
+            if (useTableCaption && tableCaptionText) {
+                html += `${indent}<div class="table-caption">${tableCaptionText}</div>${nl}`;
+            }
+
+            if (firstHeader && headerRow.length > 0) {
+                if (useTableHeadStructure) {
+                    html += `${indent}<div class="table-header">${nl}${renderDivRow(headerRow, true)}${nl}${indent}</div>${nl}`;
+                } else {
+                    html += renderDivRow(headerRow, true) + nl;
+                }
+            }
+            
+            const bodyContent = bodyRows.map(row => renderDivRow(row, false)).join(nl);
+            if(useTableHeadStructure && bodyRows.length > 0) {
+                 html += `${indent}<div class="table-body">${nl}${bodyContent}${nl}${indent}</div>${nl}`;
+            } else if (bodyRows.length > 0) {
+                html += bodyContent + nl;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        // Standard table generation
+        const tableAttrs = [];
+        if (tableId) tableAttrs.push(`id="${tableId}"`);
+        if (tableClass) tableAttrs.push(`class="${tableClass}"`);
+
+        let html = `<table ${tableAttrs.join(' ')}>${nl}`;
+        if (useTableCaption && tableCaptionText) {
+            html += `${indent}<caption>${tableCaptionText}</caption>${nl}`;
+        }
+
+        if (firstHeader && headerRow.length > 0) {
+            const headContent = renderRow(headerRow, 'th');
+            if(useTableHeadStructure){
+                html += `<thead>${nl}${headContent}${nl}</thead>${nl}`;
+            } else {
+                html += headContent + nl;
+            }
+        }
+        
+        const bodyContent = bodyRows.map(row => renderRow(row, 'td')).join(nl);
+        if(useTableHeadStructure && bodyRows.length > 0) {
+             html += `<tbody>${nl}${bodyContent}${nl}</tbody>${nl}`;
+        } else if (bodyRows.length > 0) {
+            html += bodyContent + nl;
+        }
+
+        html += `</table>`;
+        return html;
+    };
+
+
     useEffect(() => {
         startTransition(() => {
             if (!inputData.trim()) {
@@ -308,6 +398,8 @@ export function Converter({ dictionary }: ConverterProps) {
                     setOutputData(convertToCsv(table));
                 } else if (outputType === 'sql') {
                     setOutputData(convertToSql(table));
+                } else if (outputType === 'html') {
+                    setOutputData(convertToHtml(table));
                 }
             } catch (error) {
                 console.error("Conversion Error:", error);
@@ -319,7 +411,7 @@ export function Converter({ dictionary }: ConverterProps) {
                 setOutputData('');
             }
         });
-    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey]);
+    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId]);
 
 
     const handleCopy = () => {
@@ -336,6 +428,8 @@ export function Converter({ dictionary }: ConverterProps) {
         if (outputType === 'markdown') description = dictionary.toast.copiedDescriptionMarkdown;
         else if (outputType === 'csv') description = dictionary.toast.copiedDescriptionCsv;
         else if (outputType === 'sql') description = dictionary.toast.copiedDescriptionSql;
+        else if (outputType === 'html') description = dictionary.toast.copiedDescriptionHtml;
+
 
         toast({ 
             title: dictionary.toast.copiedTitle, 
@@ -356,7 +450,8 @@ export function Converter({ dictionary }: ConverterProps) {
         const fileExtensionMap = {
             markdown: 'md',
             csv: 'csv',
-            sql: 'sql'
+            sql: 'sql',
+            html: 'html'
         };
         const fileExtension = fileExtensionMap[outputType];
         const fileName = `sheetmark_output.${fileExtension}`;
@@ -413,13 +508,19 @@ export function Converter({ dictionary }: ConverterProps) {
         ? dictionary.outputDescriptionMarkdown
         : outputType === 'csv'
         ? dictionary.outputDescriptionCsv
-        : dictionary.outputDescriptionSql;
+        : outputType === 'sql'
+        ? dictionary.outputDescriptionSql
+        : dictionary.outputDescriptionHtml;
         
     const outputPlaceholder = outputType === 'markdown' 
         ? dictionary.outputPlaceholderMarkdown
         : outputType === 'csv'
         ? dictionary.outputPlaceholderCsv
-        : dictionary.outputPlaceholderSql;
+        : outputType === 'sql'
+        ? dictionary.outputPlaceholderSql
+        : outputType === 'html'
+        ? dictionary.outputPlaceholderHtml
+        : '';
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -508,19 +609,20 @@ export function Converter({ dictionary }: ConverterProps) {
                             <p className="text-xs text-muted-foreground">{dictionary.encodingDescription}</p>
                         </div>
 
-                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv' | 'sql')} className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
+                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv' | 'sql' | 'html')} className="w-full">
+                            <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="markdown">{dictionary.outputTypeMarkdown}</TabsTrigger>
                                 <TabsTrigger value="csv">{dictionary.outputTypeCsv}</TabsTrigger>
                                 <TabsTrigger value="sql">{dictionary.outputTypeSql}</TabsTrigger>
+                                <TabsTrigger value="html">{dictionary.outputTypeHtml}</TabsTrigger>
                             </TabsList>
                             {outputType === 'markdown' && (
                             <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
                                 <p className="text-sm font-medium">{dictionary.markdownOptionsTitle}</p>
                                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                     <div className="flex items-center space-x-2">
-                                            <Checkbox id="first-header" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
-                                            <Label htmlFor="first-header">{dictionary.firstHeader}</Label>
+                                            <Checkbox id="first-header-md" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                            <Label htmlFor="first-header-md">{dictionary.firstHeader}</Label>
                                     </div>
                                         <div className="flex items-center space-x-2">
                                             <Checkbox id="pretty-markdown" checked={prettyMarkdown} onCheckedChange={(c) => { setPrettyMarkdown(!!c); if(c) setSimpleMarkdown(false); }} />
@@ -632,6 +734,10 @@ export function Converter({ dictionary }: ConverterProps) {
                                     <p className="text-sm font-medium">{dictionary.sql.sqlOptionsTitle}</p>
                                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                         <div className="flex items-center space-x-2">
+                                            <Checkbox id="first-header-sql" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                            <Label htmlFor="first-header-sql">{dictionary.firstHeader}</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
                                             <Checkbox id="create-table" checked={createTable} onCheckedChange={(c) => setCreateTable(!!c)} />
                                             <Label htmlFor="create-table">{dictionary.sql.createTable}</Label>
                                         </div>
@@ -685,6 +791,72 @@ export function Converter({ dictionary }: ConverterProps) {
                                     </div>
                                 </div>
                             )}
+
+                            {outputType === 'html' && (
+                                <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                                     <p className="text-sm font-medium">{dictionary.html.htmlOptionsTitle}</p>
+                                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="first-header-html" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="first-header-html">{dictionary.html.columnHeader}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.columnHeaderTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="use-div-table" checked={useDivTable} onCheckedChange={(c) => setUseDivTable(!!c)} />
+                                             <div className="flex items-center gap-1">
+                                                <Label htmlFor="use-div-table">{dictionary.html.divTable}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.divTableTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="minify-code" checked={minifyCode} onCheckedChange={(c) => setMinifyCode(!!c)} />
+                                             <div className="flex items-center gap-1">
+                                                <Label htmlFor="minify-code">{dictionary.html.minifyCode}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.minifyCodeTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="use-table-head" checked={useTableHeadStructure} onCheckedChange={(c) => setUseTableHeadStructure(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="use-table-head">{dictionary.html.tableHeadStructure}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.tableHeadStructureTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                         <div className="flex items-center space-x-2">
+                                            <Checkbox id="use-table-caption" checked={useTableCaption} onCheckedChange={(c) => setUseTableCaption(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="use-table-caption">{dictionary.html.tableCaption}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.tableCaptionTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                        </div>
+                                     </div>
+                                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="grid gap-1.5">
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="table-caption-text">{dictionary.html.tableCaption}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.tableCaptionTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                            <Input id="table-caption-text" value={tableCaptionText} onChange={(e) => setTableCaptionText(e.target.value)} disabled={!useTableCaption}/>
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="table-class">{dictionary.html.tableClass}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.tableClassTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                            <Input id="table-class" value={tableClass} onChange={(e) => setTableClass(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                             <div className="flex items-center gap-1">
+                                                <Label htmlFor="table-id">{dictionary.html.tableId}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.html.tableIdTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                            <Input id="table-id" value={tableId} onChange={(e) => setTableId(e.target.value)} />
+                                        </div>
+                                     </div>
+                                </div>
+                            )}
                         </Tabs>
 
                         <div className="mt-4">
@@ -704,5 +876,3 @@ export function Converter({ dictionary }: ConverterProps) {
         </div>
     );
 }
-
-    
