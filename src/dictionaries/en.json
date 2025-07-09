@@ -18,6 +18,7 @@
     "inputCardTitle": "Input Data",
     "inputCardDescription": "Paste your spreadsheet data here or upload a file.",
     "uploadButton": "Upload File",
+    "downloadButton": "Download",
     "inputPlaceholder": "Paste your spreadsheet data here (comma or tab separated)...",
     "outputCardTitle": "Output",
     "copyButton": "Copy",
@@ -83,11 +84,14 @@
         "encodingErrorTitle": "Encoding Error",
         "encodingErrorDescription": "Could not decode the file with {encoding}.",
         "conversionErrorTitle": "Conversion Error",
-        "conversionErrorDescription": "Could not process the data. Please check the format."
+        "conversionErrorDescription": "Could not process the data. Please check the format.",
+        "downloadedTitle": "Downloaded!",
+        "downloadedDescription": "{fileName} has started downloading."
     }
   },
   "footer": {
-    "copyright": "© {year} SheetMark. All rights reserved."
+    "copyright": "© {year} SheetMark. All rights reserved.",
+    "buyMeAPizza": "Buy me a pizza"
   }
 }
 

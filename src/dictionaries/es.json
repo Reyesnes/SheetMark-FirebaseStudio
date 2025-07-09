@@ -18,6 +18,7 @@
     "inputCardTitle": "Datos de Entrada",
     "inputCardDescription": "Pega aquí los datos de tu hoja de cálculo o sube un archivo.",
     "uploadButton": "Subir Archivo",
+    "downloadButton": "Descargar",
     "inputPlaceholder": "Pega aquí los datos de tu hoja de cálculo (separados por comas o tabulaciones)...",
     "outputCardTitle": "Salida",
     "copyButton": "Copiar",
@@ -83,11 +84,14 @@
         "encodingErrorTitle": "Error de Codificación",
         "encodingErrorDescription": "No se pudo decodificar el archivo con {encoding}.",
         "conversionErrorTitle": "Error de Conversión",
-        "conversionErrorDescription": "No se pudieron procesar los datos. Verifique el formato."
+        "conversionErrorDescription": "No se pudieron procesar los datos. Verifique el formato.",
+        "downloadedTitle": "¡Descargado!",
+        "downloadedDescription": "La descarga de {fileName} ha comenzado."
     }
   },
   "footer": {
-    "copyright": "© {year} SheetMark. Todos los derechos reservados."
+    "copyright": "© {year} SheetMark. Todos los derechos reservados.",
+    "buyMeAPizza": "Invítame a una pizza"
   }
 }
 

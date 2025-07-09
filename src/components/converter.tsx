@@ -5,7 +5,7 @@ import React, { useState, useRef, useTransition, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Copy, ChevronsRight, Loader2, Info } from 'lucide-react';
+import { Upload, Copy, ChevronsRight, Loader2, Info, Download } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -343,6 +343,40 @@ export function Converter({ dictionary }: ConverterProps) {
         });
     };
 
+    const handleDownload = () => {
+        if (!outputData) {
+            toast({ 
+                title: dictionary.toast.nothingToCopyTitle, // Re-use toast message
+                description: dictionary.toast.nothingToCopyDescription, 
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const fileExtensionMap = {
+            markdown: 'md',
+            csv: 'csv',
+            sql: 'sql'
+        };
+        const fileExtension = fileExtensionMap[outputType];
+        const fileName = `sheetmark_output.${fileExtension}`;
+        
+        const blob = new Blob([outputData], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: dictionary.toast.downloadedTitle,
+            description: dictionary.toast.downloadedDescription.replace('{fileName}', fileName)
+        });
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -393,7 +427,7 @@ export function Converter({ dictionary }: ConverterProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                         <span>{dictionary.inputCardTitle}</span>
-                        <Button variant="outline" size="sm" onClick={handleUploadClick}>
+                        <Button variant="outline" size="sm" onClick={handleUploadClick} className="rounded-md">
                             <Upload className="mr-2 h-4 w-4" />
                             {dictionary.uploadButton}
                         </Button>
@@ -435,13 +469,17 @@ export function Converter({ dictionary }: ConverterProps) {
                         <div className="flex items-center justify-between">
                              <CardTitle>{dictionary.outputCardTitle}</CardTitle>
                              <div className="flex items-center gap-2">
-                                <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting}>
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    {dictionary.copyButton}
-                                </Button>
                                 <a href="https://bit.ly/44EVg9i" target="_blank" rel="noopener noreferrer">
                                     <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=xtfyjwvsyv&button_colour=3b82f6&font_colour=ffffff&font_family=Bree&outline_colour=000000&coffee_colour=FFDD00" alt="Buy me a beer" className="h-9" />
                                 </a>
+                                <Button variant="outline" size="sm" onClick={handleDownload} disabled={!outputData || isConverting} className="rounded-md">
+                                    <Download className="mr-2 h-4 w-4" />
+                                    {dictionary.downloadButton}
+                                </Button>
+                                <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting} className="rounded-md">
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    {dictionary.copyButton}
+                                </Button>
                              </div>
                         </div>
                         <CardDescription>{outputDescription}</CardDescription>
@@ -666,3 +704,5 @@ export function Converter({ dictionary }: ConverterProps) {
         </div>
     );
 }
+
+    
