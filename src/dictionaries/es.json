@@ -1,3 +1,4 @@
+
 {
   "metadata": {
     "title": "SheetMark - Convierte Hojas de Cálculo a Tablas Markdown",
@@ -24,6 +25,7 @@
     "encodingDescription": "Afecta a archivos subidos. Si ves '', prueba otra opción.",
     "outputTypeMarkdown": "Markdown",
     "outputTypeCsv": "CSV",
+    "outputTypeSql": "SQL",
     "markdownOptionsTitle": "Opciones de Salida Markdown",
     "firstHeader": "Primera Fila como Encabezado",
     "prettyMarkdown": "Tabla Markdown Estilizada",
@@ -51,14 +53,27 @@
     "delimiterTab": "Tabulación (\\t)",
     "delimiterPipe": "Barra vertical (|)",
     "delimiterSpace": "Espacio",
+    "sql": {
+      "sqlOptionsTitle": "Opciones de Salida SQL",
+      "createTable": "Crear Tabla",
+      "batchInsert": "Inserción por Lotes",
+      "dropTable": "Eliminar Tabla (Si Existe)",
+      "databaseType": "Tipo de Base de Datos",
+      "tableName": "Nombre de la Tabla",
+      "primaryKey": "Clave Primaria",
+      "primaryKeyTooltip": "Especifica el nombre del campo de Clave Primaria para la sentencia CREATE TABLE"
+    },
     "outputPlaceholderMarkdown": "Tu tabla Markdown aparecerá aquí...",
     "outputPlaceholderCsv": "Tus datos CSV aparecerán aquí...",
+    "outputPlaceholderSql": "Tu script SQL aparecerá aquí...",
     "outputDescriptionMarkdown": "Aquí está tu tabla en formato Markdown.",
     "outputDescriptionCsv": "Aquí están tus datos en formato CSV.",
+    "outputDescriptionSql": "Aquí están tus datos como un script SQL.",
     "toast": {
         "copiedTitle": "¡Copiado!",
         "copiedDescriptionMarkdown": "Contenido Markdown copiado al portapapeles.",
         "copiedDescriptionCsv": "Contenido CSV copiado al portapapeles.",
+        "copiedDescriptionSql": "Script SQL copiado al portapapeles.",
         "nothingToCopyTitle": "Nada que copiar",
         "nothingToCopyDescription": "La salida está vacía.",
         "fileUploadedTitle": "Archivo cargado",
@@ -75,3 +90,5 @@
     "copyright": "© {year} SheetMark. Todos los derechos reservados."
   }
 }
+
+    

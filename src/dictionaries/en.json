@@ -1,3 +1,4 @@
+
 {
   "metadata": {
     "title": "SheetMark - Convert Spreadsheets to Markdown Tables",
@@ -24,6 +25,7 @@
     "encodingDescription": "Affects uploaded files. If you see '', try another option.",
     "outputTypeMarkdown": "Markdown",
     "outputTypeCsv": "CSV",
+    "outputTypeSql": "SQL",
     "markdownOptionsTitle": "Markdown Output Options",
     "firstHeader": "First Row as Header",
     "prettyMarkdown": "Pretty-Print Markdown",
@@ -51,14 +53,27 @@
     "delimiterTab": "Tab (\\t)",
     "delimiterPipe": "Pipe (|)",
     "delimiterSpace": "Space",
+    "sql": {
+      "sqlOptionsTitle": "SQL Output Options",
+      "createTable": "Create Table",
+      "batchInsert": "Batch Insert",
+      "dropTable": "Drop Table (If Exists)",
+      "databaseType": "Database Type",
+      "tableName": "Table Name",
+      "primaryKey": "Primary Key",
+      "primaryKeyTooltip": "Specify Primary Key Field Name For CREATE TABLE statement"
+    },
     "outputPlaceholderMarkdown": "Your Markdown table will appear here...",
     "outputPlaceholderCsv": "Your CSV data will appear here...",
+    "outputPlaceholderSql": "Your SQL script will appear here...",
     "outputDescriptionMarkdown": "Here is your table in Markdown format.",
     "outputDescriptionCsv": "Here is your data in CSV format.",
+    "outputDescriptionSql": "Here is your data as an SQL script.",
     "toast": {
         "copiedTitle": "Copied!",
         "copiedDescriptionMarkdown": "Markdown content copied to clipboard.",
         "copiedDescriptionCsv": "CSV content copied to clipboard.",
+        "copiedDescriptionSql": "SQL script copied to clipboard.",
         "nothingToCopyTitle": "Nothing to copy",
         "nothingToCopyDescription": "The output is empty.",
         "fileUploadedTitle": "File uploaded",
@@ -75,3 +90,5 @@
     "copyright": "© {year} SheetMark. All rights reserved."
   }
 }
+
+    

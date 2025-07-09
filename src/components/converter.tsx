@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 type ConverterProps = {
     dictionary: any;
@@ -25,7 +26,7 @@ export function Converter({ dictionary }: ConverterProps) {
     const { toast } = useToast();
 
     // Common State
-    const [outputType, setOutputType] = useState<'markdown' | 'csv'>('markdown');
+    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql'>('markdown');
     const [encoding, setEncoding] = useState('UTF-8');
     const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
 
@@ -44,6 +45,14 @@ export function Converter({ dictionary }: ConverterProps) {
     const [boldFirstColumn, setBoldFirstColumn] = useState(false);
     const [textAlign, setTextAlign] = useState('left');
     const [multilineHandling, setMultilineHandling] = useState('preserve');
+
+    // SQL State
+    const [createTable, setCreateTable] = useState(false);
+    const [batchInsert, setBatchInsert] = useState(false);
+    const [dropTable, setDropTable] = useState(false);
+    const [databaseType, setDatabaseType] = useState('MySQL');
+    const [tableName, setTableName] = useState('tableName');
+    const [primaryKey, setPrimaryKey] = useState('');
 
     useEffect(() => {
         if (fileBuffer) {
@@ -193,6 +202,97 @@ export function Converter({ dictionary }: ConverterProps) {
 
         return csvContent;
     };
+    
+    const convertToSql = (tableData: string[][]): string => {
+        if (!tableData || tableData.length === 0 || !tableData[0]) return '';
+    
+        const getIdentifierQuote = (dbType: string): [string, string] => {
+            switch (dbType) {
+                case 'MySQL':
+                case 'MariaDB':
+                case 'Amazon Redshift':
+                case 'Amazon Athena':
+                    return ['`', '`'];
+                case 'PostgreSQL':
+                case 'Oracle':
+                    return ['"', '"'];
+                case 'SQL Server':
+                    return ['[', ']'];
+                case 'SQLite':
+                case 'IBM DB2':
+                default:
+                    return ['"', '"']; // ANSI standard
+            }
+        };
+    
+        const escapeSqlValue = (value: string): string => {
+            if (value === null || value === undefined) return 'NULL';
+            return `'${value.replace(/'/g, "''")}'`;
+        };
+    
+        const [qS, qE] = getIdentifierQuote(databaseType);
+        const effectiveTableName = `${qS}${tableName || 'my_table'}${qE}`;
+    
+        const header = firstHeader ? tableData[0] : tableData[0].map((_, i) => `column_${i + 1}`);
+        const body = firstHeader ? tableData.slice(1) : tableData;
+    
+        if (body.length === 0 && !createTable) return '';
+    
+        const quotedHeader = header.map(h => `${qS}${h}${qE}`);
+        let sqlOutput = [];
+    
+        if (dropTable) {
+            sqlOutput.push(`DROP TABLE IF EXISTS ${effectiveTableName};`);
+        }
+    
+        if (createTable) {
+            const columnDefs = header.map(colName => {
+                const quotedColName = `${qS}${colName}${qE}`;
+                let dataType = 'VARCHAR(255)';
+                switch(databaseType) {
+                    case 'PostgreSQL':
+                    case 'SQLite':
+                    case 'Oracle':
+                    case 'IBM DB2':
+                    case 'Amazon Redshift':
+                    case 'Amazon Athena':
+                        dataType = 'TEXT';
+                        break;
+                    case 'SQL Server':
+                        dataType = 'NVARCHAR(255)';
+                        break;
+                }
+                return `${quotedColName} ${dataType}`;
+            });
+    
+            if (primaryKey && header.includes(primaryKey)) {
+                columnDefs.push(`PRIMARY KEY (${qS}${primaryKey}${qE})`);
+            }
+    
+            sqlOutput.push(`CREATE TABLE ${effectiveTableName} (\n  ${columnDefs.join(',\n  ')}\n);`);
+        }
+    
+        if (body.length > 0) {
+            const insertPrefix = `INSERT INTO ${effectiveTableName} (${quotedHeader.join(', ')}) VALUES`;
+    
+            if (batchInsert) {
+                const allValues = body
+                    .filter(row => row.length === header.length)
+                    .map(row => `(${row.map(escapeSqlValue).join(', ')})`)
+                    .join(',\n');
+                if (allValues) {
+                    sqlOutput.push(`${insertPrefix}\n${allValues};`);
+                }
+            } else {
+                const insertStatements = body
+                    .filter(row => row.length === header.length)
+                    .map(row => `${insertPrefix} (${row.map(escapeSqlValue).join(', ')});`);
+                sqlOutput.push(...insertStatements);
+            }
+        }
+    
+        return sqlOutput.join('\n\n');
+    };
 
     useEffect(() => {
         startTransition(() => {
@@ -204,8 +304,10 @@ export function Converter({ dictionary }: ConverterProps) {
                 const table = parseInput(inputData);
                 if (outputType === 'markdown') {
                     setOutputData(convertToMarkdown(table));
-                } else {
+                } else if (outputType === 'csv') {
                     setOutputData(convertToCsv(table));
+                } else if (outputType === 'sql') {
+                    setOutputData(convertToSql(table));
                 }
             } catch (error) {
                 console.error("Conversion Error:", error);
@@ -217,7 +319,7 @@ export function Converter({ dictionary }: ConverterProps) {
                 setOutputData('');
             }
         });
-    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling]);
+    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey]);
 
 
     const handleCopy = () => {
@@ -230,9 +332,14 @@ export function Converter({ dictionary }: ConverterProps) {
             return;
         }
         navigator.clipboard.writeText(outputData);
+        let description = '';
+        if (outputType === 'markdown') description = dictionary.toast.copiedDescriptionMarkdown;
+        else if (outputType === 'csv') description = dictionary.toast.copiedDescriptionCsv;
+        else if (outputType === 'sql') description = dictionary.toast.copiedDescriptionSql;
+
         toast({ 
             title: dictionary.toast.copiedTitle, 
-            description: outputType === 'markdown' ? dictionary.toast.copiedDescriptionMarkdown : dictionary.toast.copiedDescriptionCsv
+            description
         });
     };
 
@@ -270,7 +377,15 @@ export function Converter({ dictionary }: ConverterProps) {
 
     const outputDescription = outputType === 'markdown' 
         ? dictionary.outputDescriptionMarkdown
-        : dictionary.outputDescriptionCsv;
+        : outputType === 'csv'
+        ? dictionary.outputDescriptionCsv
+        : dictionary.outputDescriptionSql;
+        
+    const outputPlaceholder = outputType === 'markdown' 
+        ? dictionary.outputPlaceholderMarkdown
+        : outputType === 'csv'
+        ? dictionary.outputPlaceholderCsv
+        : dictionary.outputPlaceholderSql;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -350,132 +465,192 @@ export function Converter({ dictionary }: ConverterProps) {
                             <p className="text-xs text-muted-foreground">{dictionary.encodingDescription}</p>
                         </div>
 
-                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv')} className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
+                        <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv' | 'sql')} className="w-full">
+                            <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="markdown">{dictionary.outputTypeMarkdown}</TabsTrigger>
                                 <TabsTrigger value="csv">{dictionary.outputTypeCsv}</TabsTrigger>
+                                <TabsTrigger value="sql">{dictionary.outputTypeSql}</TabsTrigger>
                             </TabsList>
-                        </Tabs>
-
-                        {outputType === 'markdown' && (
-                           <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
-                               <p className="text-sm font-medium">{dictionary.markdownOptionsTitle}</p>
-                               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                                   <div className="flex items-center space-x-2">
-                                        <Checkbox id="first-header" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
-                                        <Label htmlFor="first-header">{dictionary.firstHeader}</Label>
-                                   </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="pretty-markdown" checked={prettyMarkdown} onCheckedChange={(c) => { setPrettyMarkdown(!!c); if(c) setSimpleMarkdown(false); }} />
-                                        <Label htmlFor="pretty-markdown">{dictionary.prettyMarkdown}</Label>
-                                   </div>
-                                   <div className="flex items-center space-x-2">
-                                        <Checkbox id="simple-markdown" checked={simpleMarkdown} onCheckedChange={(c) => { setSimpleMarkdown(!!c); if(c) setPrettyMarkdown(false); }} />
-                                        <Label htmlFor="simple-markdown">{dictionary.simpleMarkdown}</Label>
-                                   </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="add-line-numbers" checked={addLineNumbers} onCheckedChange={(c) => setAddLineNumbers(!!c)} />
-                                        <Label htmlFor="add-line-numbers">{dictionary.addLineNumbers}</Label>
-                                   </div>
-                                   <div className="flex items-center space-x-2">
-                                        <Checkbox id="bold-first-row" checked={boldFirstRow} onCheckedChange={(c) => setBoldFirstRow(!!c)} />
-                                        <Label htmlFor="bold-first-row">{dictionary.boldFirstRow}</Label>
-                                   </div>
-                                   <div className="flex items-center space-x-2">
-                                        <Checkbox id="bold-first-column" checked={boldFirstColumn} onCheckedChange={(c) => setBoldFirstColumn(!!c)} />
-                                        <Label htmlFor="bold-first-column">{dictionary.boldFirstColumn}</Label>
-                                   </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="escape-chars" checked={escapeChars} onCheckedChange={(c) => setEscapeChars(!!c)} />
-                                        <div className="flex items-center gap-1">
-                                            <Label htmlFor="escape-chars" className="cursor-pointer">{dictionary.escapeChars}</Label>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Info className="h-4 w-4 text-muted-foreground" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{dictionary.escapeCharsTooltip}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                   </div>
-                               </div>
-                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="text-align">{dictionary.textAlign}</Label>
-                                        <Select value={textAlign} onValueChange={setTextAlign}>
-                                            <SelectTrigger id="text-align" className="bg-background"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="left">{dictionary.alignLeft}</SelectItem>
-                                                <SelectItem value="center">{dictionary.alignCenter}</SelectItem>
-                                                <SelectItem value="right">{dictionary.alignRight}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="multiline">{dictionary.multiline}</Label>
-                                        <Select value={multilineHandling} onValueChange={setMultilineHandling}>
-                                            <SelectTrigger id="multiline" className="bg-background"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="preserve">{dictionary.multilinePreserve}</SelectItem>
-                                                <SelectItem value="escape">{dictionary.multilineEscape}</SelectItem>
-                                                <SelectItem value="break">{dictionary.multilineBreak}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                               </div>
-                           </div>
-                        )}
-
-                        {outputType === 'csv' && (
-                           <div className="mt-4 p-4 border rounded-lg bg-card">
-                                <p className="text-sm font-medium mb-4">{dictionary.csvOptionsTitle}</p>
+                            {outputType === 'markdown' && (
+                            <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                                <p className="text-sm font-medium">{dictionary.markdownOptionsTitle}</p>
                                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                     <div className="flex items-center space-x-2">
-                                        <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
-                                        <Label htmlFor="double-quotes" className="cursor-pointer leading-none">{dictionary.useDoubleQuotes}</Label>
+                                            <Checkbox id="first-header" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                            <Label htmlFor="first-header">{dictionary.firstHeader}</Label>
+                                    </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="pretty-markdown" checked={prettyMarkdown} onCheckedChange={(c) => { setPrettyMarkdown(!!c); if(c) setSimpleMarkdown(false); }} />
+                                            <Label htmlFor="pretty-markdown">{dictionary.prettyMarkdown}</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <Checkbox id="add-bom" checked={addBom} onCheckedChange={(c) => setAddBom(!!c)} />
-                                        <div className="flex items-center gap-1">
-                                            <Label htmlFor="add-bom" className="cursor-pointer leading-none">{dictionary.addBom}</Label>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Info className="h-4 w-4 text-muted-foreground" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>{dictionary.addBomTooltip}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
+                                            <Checkbox id="simple-markdown" checked={simpleMarkdown} onCheckedChange={(c) => { setSimpleMarkdown(!!c); if(c) setPrettyMarkdown(false); }} />
+                                            <Label htmlFor="simple-markdown">{dictionary.simpleMarkdown}</Label>
                                     </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="delimiter">{dictionary.delimiter}</Label>
-                                        <Select value={delimiter} onValueChange={setDelimiter}>
-                                            <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value=";">{dictionary.delimiterSemicolon}</SelectItem>
-                                                <SelectItem value=",">{dictionary.delimiterComma}</SelectItem>
-                                                <SelectItem value="\t">{dictionary.delimiterTab}</SelectItem>
-                                                <SelectItem value="|">{dictionary.delimiterPipe}</SelectItem>
-                                                <SelectItem value=" ">{dictionary.delimiterSpace}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="add-line-numbers" checked={addLineNumbers} onCheckedChange={(c) => setAddLineNumbers(!!c)} />
+                                            <Label htmlFor="add-line-numbers">{dictionary.addLineNumbers}</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                            <Checkbox id="bold-first-row" checked={boldFirstRow} onCheckedChange={(c) => setBoldFirstRow(!!c)} />
+                                            <Label htmlFor="bold-first-row">{dictionary.boldFirstRow}</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                            <Checkbox id="bold-first-column" checked={boldFirstColumn} onCheckedChange={(c) => setBoldFirstColumn(!!c)} />
+                                            <Label htmlFor="bold-first-column">{dictionary.boldFirstColumn}</Label>
+                                    </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="escape-chars" checked={escapeChars} onCheckedChange={(c) => setEscapeChars(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="escape-chars" className="cursor-pointer">{dictionary.escapeChars}</Label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{dictionary.escapeCharsTooltip}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
                                     </div>
                                 </div>
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="text-align">{dictionary.textAlign}</Label>
+                                            <Select value={textAlign} onValueChange={setTextAlign}>
+                                                <SelectTrigger id="text-align" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="left">{dictionary.alignLeft}</SelectItem>
+                                                    <SelectItem value="center">{dictionary.alignCenter}</SelectItem>
+                                                    <SelectItem value="right">{dictionary.alignRight}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="multiline">{dictionary.multiline}</Label>
+                                            <Select value={multilineHandling} onValueChange={setMultilineHandling}>
+                                                <SelectTrigger id="multiline" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="preserve">{dictionary.multilinePreserve}</SelectItem>
+                                                    <SelectItem value="escape">{dictionary.multilineEscape}</SelectItem>
+                                                    <SelectItem value="break">{dictionary.multilineBreak}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                </div>
                             </div>
-                        )}
+                            )}
+
+                            {outputType === 'csv' && (
+                            <div className="mt-4 p-4 border rounded-lg bg-card">
+                                    <p className="text-sm font-medium mb-4">{dictionary.csvOptionsTitle}</p>
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
+                                            <Label htmlFor="double-quotes" className="cursor-pointer leading-none">{dictionary.useDoubleQuotes}</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="add-bom" checked={addBom} onCheckedChange={(c) => setAddBom(!!c)} />
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="add-bom" className="cursor-pointer leading-none">{dictionary.addBom}</Label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{dictionary.addBomTooltip}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="delimiter">{dictionary.delimiter}</Label>
+                                            <Select value={delimiter} onValueChange={setDelimiter}>
+                                                <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value=";">{dictionary.delimiterSemicolon}</SelectItem>
+                                                    <SelectItem value=",">{dictionary.delimiterComma}</SelectItem>
+                                                    <SelectItem value="\t">{dictionary.delimiterTab}</SelectItem>
+                                                    <SelectItem value="|">{dictionary.delimiterPipe}</SelectItem>
+                                                    <SelectItem value=" ">{dictionary.delimiterSpace}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {outputType === 'sql' && (
+                                <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                                    <p className="text-sm font-medium">{dictionary.sql.sqlOptionsTitle}</p>
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="create-table" checked={createTable} onCheckedChange={(c) => setCreateTable(!!c)} />
+                                            <Label htmlFor="create-table">{dictionary.sql.createTable}</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="batch-insert" checked={batchInsert} onCheckedChange={(c) => setBatchInsert(!!c)} />
+                                            <Label htmlFor="batch-insert">{dictionary.sql.batchInsert}</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="drop-table" checked={dropTable} onCheckedChange={(c) => setDropTable(!!c)} />
+                                            <Label htmlFor="drop-table">{dictionary.sql.dropTable}</Label>
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="db-type">{dictionary.sql.databaseType}</Label>
+                                            <Select value={databaseType} onValueChange={setDatabaseType}>
+                                                <SelectTrigger id="db-type" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="MySQL">MySQL</SelectItem>
+                                                    <SelectItem value="PostgreSQL">PostgreSQL</SelectItem>
+                                                    <SelectItem value="SQLite">SQLite</SelectItem>
+                                                    <SelectItem value="SQL Server">SQL Server</SelectItem>
+                                                    <SelectItem value="Oracle">Oracle</SelectItem>
+                                                    <SelectItem value="MariaDB">MariaDB</SelectItem>
+                                                    <SelectItem value="Amazon Redshift">Amazon Redshift</SelectItem>
+                                                    <SelectItem value="IBM DB2">IBM DB2</SelectItem>
+                                                    <SelectItem value="Amazon Athena">Amazon Athena</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="table-name">{dictionary.sql.tableName}</Label>
+                                            <Input id="table-name" value={tableName} onChange={(e) => setTableName(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <div className="flex items-center gap-1">
+                                                <Label htmlFor="primary-key">{dictionary.sql.primaryKey}</Label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{dictionary.sql.primaryKeyTooltip}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Input id="primary-key" value={primaryKey} onChange={(e) => setPrimaryKey(e.target.value)} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </Tabs>
+
                         <div className="mt-4">
                             <Label htmlFor="output-data" className="sr-only">{dictionary.outputCardTitle}</Label>
                             <Textarea
                                 id="output-data"
                                 value={outputData}
                                 readOnly
-                                placeholder={outputType === 'markdown' ? dictionary.outputPlaceholderMarkdown : dictionary.outputPlaceholderCsv}
+                                placeholder={outputPlaceholder}
                                 className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
                                 aria-label="Área de texto para salida"
                             />
@@ -486,3 +661,5 @@ export function Converter({ dictionary }: ConverterProps) {
         </div>
     );
 }
+
+    
