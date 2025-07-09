@@ -5,12 +5,13 @@ import React, { useState, useRef, useTransition, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Copy, ChevronsRight, Loader2 } from 'lucide-react';
+import { Upload, Copy, ChevronsRight, Loader2, Info } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function Converter() {
     const [inputData, setInputData] = useState('');
@@ -19,13 +20,26 @@ export function Converter() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
+    // Common State
     const [outputType, setOutputType] = useState<'markdown' | 'csv'>('markdown');
-    const [useDoubleQuotes, setUseDoubleQuotes] = useState(true);
-    const [delimiter, setDelimiter] = useState(';');
     const [encoding, setEncoding] = useState('UTF-8');
     const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
 
-    // Effect to re-decode file buffer when encoding changes
+    // CSV State
+    const [useDoubleQuotes, setUseDoubleQuotes] = useState(true);
+    const [delimiter, setDelimiter] = useState(';');
+    
+    // Markdown State
+    const [escapeChars, setEscapeChars] = useState(false);
+    const [firstHeader, setFirstHeader] = useState(true);
+    const [prettyMarkdown, setPrettyMarkdown] = useState(true);
+    const [simpleMarkdown, setSimpleMarkdown] = useState(false);
+    const [addLineNumbers, setAddLineNumbers] = useState(false);
+    const [boldFirstRow, setBoldFirstRow] = useState(false);
+    const [boldFirstColumn, setBoldFirstColumn] = useState(false);
+    const [textAlign, setTextAlign] = useState('left');
+    const [multilineHandling, setMultilineHandling] = useState('preserve');
+
     useEffect(() => {
         if (fileBuffer) {
             try {
@@ -44,7 +58,6 @@ export function Converter() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputData(e.target.value);
-        // If user types, we are no longer working with the file buffer
         setFileBuffer(null); 
     };
     
@@ -73,24 +86,84 @@ export function Converter() {
         }));
     };
 
-    const convertToMarkdown = (table: string[][]): string => {
-        if (table.length === 0 || table[0].length === 0) return '';
-        
-        const header = table[0];
-        const body = table.slice(1);
-
-        let markdown = `| ${header.join(' | ')} |\n`;
-        markdown += `| ${header.map(() => '---').join(' | ')} |\n`;
-        
-        body.forEach(row => {
-            const paddedRow = [...row];
-            while (paddedRow.length < header.length) {
-                paddedRow.push('');
+    const convertToMarkdown = (tableData: string[][]): string => {
+        if (!tableData || tableData.length === 0 || !tableData[0] || tableData[0].length === 0) return '';
+    
+        let table = JSON.parse(JSON.stringify(tableData));
+    
+        const processCell = (content: string): string => {
+            let processed = content || '';
+            if (multilineHandling === 'preserve') {
+                processed = processed.replace(/\n/g, '<br>');
+            } else if (multilineHandling === 'escape') {
+                processed = processed.replace(/\n/g, '\\n');
+            } else if (multilineHandling === 'break') {
+                processed = processed.replace(/\n/g, ' ');
             }
-            markdown += `| ${paddedRow.slice(0, header.length).join(' | ')} |\n`;
-        });
-
-        return markdown;
+            if (escapeChars) {
+                processed = processed.replace(/\|/g, '\\|');
+            }
+            return processed;
+        };
+    
+        table = table.map(row => row.map(processCell));
+    
+        let effectiveHeader = firstHeader;
+        if (addLineNumbers) {
+            if (firstHeader) {
+                const headerWithNum = ['#', ...table[0]];
+                const bodyWithNum = table.slice(1).map((r, i) => [String(i + 1), ...r]);
+                table = [headerWithNum, ...bodyWithNum];
+            } else {
+                const headerWithNum = ['#', ...Array(table[0].length).fill('')];
+                const bodyWithNum = table.map((r, i) => [String(i + 1), ...r]);
+                table = [headerWithNum, ...bodyWithNum];
+                effectiveHeader = true;
+            }
+        }
+    
+        let header = effectiveHeader ? table[0] : Array(table[0].length).fill('');
+        let body = effectiveHeader ? table.slice(1) : table;
+    
+        if (boldFirstRow) {
+            header = header.map(cell => `**${cell}**`);
+        }
+    
+        if (boldFirstColumn) {
+            if (header.length > 0) header[0] = `**${header[0]}**`;
+            body = body.map(row => {
+                if (row.length > 0) {
+                    const newRow = [...row];
+                    newRow[0] = `**${newRow[0]}**`;
+                    return newRow;
+                }
+                return row;
+            });
+        }
+    
+        const allRows = [header, ...body];
+        const colWidths = Array(header.length).fill(0).map((_, i) => 
+            Math.max(3, ...allRows.map(row => (row[i] || '').length))
+        );
+    
+        const getSeparator = (align: string, width: number) => {
+            const useWidth = prettyMarkdown ? width : 3;
+            if (align === 'center') return `:${'-'.repeat(Math.max(1, useWidth - 2))}:`;
+            if (align === 'right') return `${'-'.repeat(Math.max(1, useWidth - 1))}:`;
+            return '-'.repeat(useWidth);
+        };
+    
+        const buildRow = (row: string[]) => {
+            const fullRow = [...row];
+            while (fullRow.length < header.length) fullRow.push('');
+            return `| ${fullRow.map((cell, i) => (cell || '').padEnd(prettyMarkdown ? colWidths[i] : 0)).join(' | ')} |`;
+        };
+    
+        const headerLine = buildRow(header);
+        const separatorLine = `| ${colWidths.map((w, i) => getSeparator(textAlign, w)).join(' | ')} |`;
+        const bodyLines = body.map(buildRow).join('\n');
+    
+        return [headerLine, separatorLine, bodyLines].join('\n');
     };
 
     const convertToCsv = (table: string[][]): string => {
@@ -124,6 +197,7 @@ export function Converter() {
                     setOutputData(convertToCsv(table));
                 }
             } catch (error) {
+                console.error("Conversion Error:", error);
                 toast({
                     title: "Error de Conversión",
                     description: "No se pudieron procesar los datos. Verifique el formato.",
@@ -132,7 +206,8 @@ export function Converter() {
                 setOutputData('');
             }
         });
-    }, [inputData, outputType, useDoubleQuotes, delimiter]);
+    }, [inputData, outputType, useDoubleQuotes, delimiter, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling]);
+
 
     const handleCopy = () => {
         if (!outputData) {
@@ -157,8 +232,8 @@ export function Converter() {
             reader.onload = (event) => {
                 const buffer = event.target?.result as ArrayBuffer;
                 if(buffer){
-                    setFileBuffer(buffer); // This will trigger the useEffect for decoding
-                     toast({ 
+                    setFileBuffer(buffer);
+                    toast({ 
                         title: "Archivo cargado",
                         description: `${file.name} ha sido cargado con éxito.` 
                     });
@@ -241,26 +316,27 @@ export function Converter() {
                         <CardDescription>{outputDescription}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="mb-4">
-                            <div className="grid gap-1.5">
-                                <Label htmlFor="encoding">Codificación de Archivo (Entrada)</Label>
-                                <Select value={encoding} onValueChange={setEncoding}>
-                                    <SelectTrigger id="encoding" className="bg-background w-full sm:max-w-xs">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="UTF-8">UTF-8 (Default)</SelectItem>
-                                        <SelectItem value="ISO-8859-1">ISO-8859-1 (Latin 1)</SelectItem>
-                                        <SelectItem value="ISO-8859-15">ISO-8859-15 (Latin 9)</SelectItem>
-                                        <SelectItem value="windows-1252">Windows-1252 (ANSI)</SelectItem>
-                                        <SelectItem value="windows-1251">Windows-1251 (Cyrillic)</SelectItem>
-                                        <SelectItem value="UTF-16BE">UTF-16 Big Endian</SelectItem>
-                                        <SelectItem value="UTF-16LE">UTF-16 Little Endian</SelectItem>
-                                        <SelectItem value="Shift_JIS">Shift_JIS (Japonés)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground">Afecta a archivos subidos. Si ves '', prueba otra opción.</p>
-                            </div>
+                        <div className="grid gap-1.5 mb-4">
+                            <Label htmlFor="encoding">Codificación de Archivo (Entrada)</Label>
+                            <Select value={encoding} onValueChange={setEncoding}>
+                                <SelectTrigger id="encoding" className="bg-background w-full sm:max-w-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="UTF-8">UTF-8</SelectItem>
+                                    <SelectItem value="ISO-8859-1">ISO-8859-1 (Latin 1)</SelectItem>
+                                    <SelectItem value="windows-1252">Windows-1252</SelectItem>
+                                    <SelectItem value="UTF-16BE">UTF-16BE</SelectItem>
+                                    <SelectItem value="UTF-16LE">UTF-16LE</SelectItem>
+                                    <SelectItem value="ISO-8859-15">ISO-8859-15</SelectItem>
+                                    <SelectItem value="macintosh">MacRoman</SelectItem>
+                                    <SelectItem value="windows-1251">Windows-1251 (Cyrillic)</SelectItem>
+                                    <SelectItem value="Shift_JIS">Shift_JIS (Japonés)</SelectItem>
+                                    <SelectItem value="EUC-KR">EUC-KR (Coreano)</SelectItem>
+                                    <SelectItem value="GBK">GBK (Chino Simplificado)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">Afecta a archivos subidos. Si ves '', prueba otra opción.</p>
                         </div>
 
                         <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv')} className="w-full">
@@ -269,6 +345,78 @@ export function Converter() {
                                 <TabsTrigger value="csv">CSV</TabsTrigger>
                             </TabsList>
                         </Tabs>
+
+                        {outputType === 'markdown' && (
+                           <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
+                               <p className="text-sm font-medium">Opciones de Salida Markdown</p>
+                               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                   <div className="flex items-center space-x-2">
+                                        <Checkbox id="first-header" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
+                                        <Label htmlFor="first-header">Primera Fila como Encabezado</Label>
+                                   </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="pretty-markdown" checked={prettyMarkdown} onCheckedChange={(c) => { setPrettyMarkdown(!!c); if(c) setSimpleMarkdown(false); }} />
+                                        <Label htmlFor="pretty-markdown">Tabla Markdown Estilizada</Label>
+                                   </div>
+                                   <div className="flex items-center space-x-2">
+                                        <Checkbox id="simple-markdown" checked={simpleMarkdown} onCheckedChange={(c) => { setSimpleMarkdown(!!c); if(c) setPrettyMarkdown(false); }} />
+                                        <Label htmlFor="simple-markdown">Formato Markdown Simple</Label>
+                                   </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="add-line-numbers" checked={addLineNumbers} onCheckedChange={(c) => setAddLineNumbers(!!c)} />
+                                        <Label htmlFor="add-line-numbers">Añadir Números de Fila</Label>
+                                   </div>
+                                   <div className="flex items-center space-x-2">
+                                        <Checkbox id="bold-first-row" checked={boldFirstRow} onCheckedChange={(c) => setBoldFirstRow(!!c)} />
+                                        <Label htmlFor="bold-first-row">Negrita en Primera Fila</Label>
+                                   </div>
+                                   <div className="flex items-center space-x-2">
+                                        <Checkbox id="bold-first-column" checked={boldFirstColumn} onCheckedChange={(c) => setBoldFirstColumn(!!c)} />
+                                        <Label htmlFor="bold-first-column">Negrita en Primera Columna</Label>
+                                   </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="escape-chars" checked={escapeChars} onCheckedChange={(c) => setEscapeChars(!!c)} />
+                                        <div className="flex items-center gap-1">
+                                            <Label htmlFor="escape-chars" className="cursor-pointer">Escapar Caracteres</Label>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Escapa caracteres especiales como '|' para<br/>evitar que se rompa la tabla.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                   </div>
+                               </div>
+                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="text-align">Alineación de Texto</Label>
+                                        <Select value={textAlign} onValueChange={setTextAlign}>
+                                            <SelectTrigger id="text-align" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="left">Izquierda</SelectItem>
+                                                <SelectItem value="center">Centro</SelectItem>
+                                                <SelectItem value="right">Derecha</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="multiline">Manejo Multilínea</Label>
+                                        <Select value={multilineHandling} onValueChange={setMultilineHandling}>
+                                            <SelectTrigger id="multiline" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="preserve">Preservar (&lt;br&gt;)</SelectItem>
+                                                <SelectItem value="escape">Escapar (\\n)</SelectItem>
+                                                <SelectItem value="break">Romper Líneas (espacio)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                               </div>
+                           </div>
+                        )}
 
                         {outputType === 'csv' && (
                            <div className="mt-4 p-4 border rounded-lg bg-card">
@@ -283,15 +431,11 @@ export function Converter() {
                                         <Select value={delimiter} onValueChange={setDelimiter}>
                                             <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value=",">Comma (CSV) (,)</SelectItem>
-                                                <SelectItem value="\t">Tab (TSV) (\t)</SelectItem>
-                                                <SelectItem value=";">Semicolon (;) (Default)</SelectItem>
-                                                <SelectItem value="|">Pipe (|)</SelectItem>
-                                                <SelectItem value=":">Colon (:)</SelectItem>
-                                                <SelectItem value="/">Slash (/)</SelectItem>
-                                                <SelectItem value="#">Octothorpe (#)</SelectItem>
-                                                <SelectItem value="~">Tilde (~)</SelectItem>
-                                                <SelectItem value="-">Dash (-)</SelectItem>
+                                                <SelectItem value=";">Punto y coma (;)</SelectItem>
+                                                <SelectItem value=",">Coma (,)</SelectItem>
+                                                <SelectItem value="\t">Tabulación (\t)</SelectItem>
+                                                <SelectItem value="|">Barra vertical (|)</SelectItem>
+                                                <SelectItem value=" ">Espacio</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
