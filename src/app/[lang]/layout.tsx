@@ -56,7 +56,7 @@ export default function RootLayout({
             data-id="XTFyjwVSYV"
             data-description="Support me on Buy me a coffee!"
             data-message="Enjoying the tool? You can support my work with a coffee or a beer☕🍻🙂"
-            data-color="#5F7FFF"
+            data-color="#3b82f6"
             data-position="Right"
             data-x_margin="18"
             data-y_margin="18"
