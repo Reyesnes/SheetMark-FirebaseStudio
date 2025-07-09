@@ -28,6 +28,7 @@ export function Converter() {
     // CSV State
     const [useDoubleQuotes, setUseDoubleQuotes] = useState(true);
     const [delimiter, setDelimiter] = useState(';');
+    const [addBom, setAddBom] = useState(false);
     
     // Markdown State
     const [escapeChars, setEscapeChars] = useState(false);
@@ -178,9 +179,15 @@ export function Converter() {
             return cell;
         };
 
-        return table.map(row => 
+        let csvContent = table.map(row => 
             row.map(escapeCell).join(delimiter)
         ).join('\n');
+
+        if (addBom) {
+            csvContent = '\uFEFF' + csvContent;
+        }
+
+        return csvContent;
     };
 
     useEffect(() => {
@@ -206,7 +213,7 @@ export function Converter() {
                 setOutputData('');
             }
         });
-    }, [inputData, outputType, useDoubleQuotes, delimiter, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling]);
+    }, [inputData, outputType, useDoubleQuotes, delimiter, addBom, escapeChars, firstHeader, prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, multilineHandling]);
 
 
     const handleCopy = () => {
@@ -425,6 +432,22 @@ export function Converter() {
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
                                         <Label htmlFor="double-quotes" className="cursor-pointer leading-none">Usar comillas dobles</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="add-bom" checked={addBom} onCheckedChange={(c) => setAddBom(!!c)} />
+                                        <div className="flex items-center gap-1">
+                                            <Label htmlFor="add-bom" className="cursor-pointer leading-none">UTF-8 BOM</Label>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Add UTF-8 byte order mark to help Excel and other software recognize encoding.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="delimiter">Delimitador</Label>
