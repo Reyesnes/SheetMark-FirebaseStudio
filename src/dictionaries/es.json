@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "title": "SheetMark - Convierte Hojas de Cálculo a Tablas Markdown",
+    "description": "Convierte fácilmente tus datos de hojas de cálculo de CSV, TSV o pegando directamente en una tabla Markdown limpia. Rápido, gratis y fácil de usar.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, sheetmark, hoja de calculo a markdown, csv a markdown"
+  },
+  "header": {
+    "title": "SheetMark",
+    "buyMeACoffee": "Invítame a un Café",
+    "language": "Idioma"
+  },
+  "page": {
+    "title": "Convierte Hojas de Cálculo a Markdown",
+    "description": "Pega tus datos o sube un archivo CSV/TSV y obtén una tabla Markdown al instante."
+  },
+  "converter": {
+    "inputCardTitle": "Datos de Entrada",
+    "inputCardDescription": "Pega aquí los datos de tu hoja de cálculo o sube un archivo.",
+    "uploadButton": "Subir Archivo",
+    "inputPlaceholder": "Pega aquí los datos de tu hoja de cálculo (separados por comas o tabulaciones)...",
+    "outputCardTitle": "Salida",
+    "copyButton": "Copiar",
+    "encodingLabel": "Codificación de Archivo (Entrada)",
+    "encodingDescription": "Afecta a archivos subidos. Si ves '', prueba otra opción.",
+    "outputTypeMarkdown": "Markdown",
+    "outputTypeCsv": "CSV",
+    "markdownOptionsTitle": "Opciones de Salida Markdown",
+    "firstHeader": "Primera Fila como Encabezado",
+    "prettyMarkdown": "Tabla Markdown Estilizada",
+    "simpleMarkdown": "Formato Markdown Simple",
+    "addLineNumbers": "Añadir Números de Fila",
+    "boldFirstRow": "Negrita en Primera Fila",
+    "boldFirstColumn": "Negrita en Primera Columna",
+    "escapeChars": "Escapar Caracteres",
+    "escapeCharsTooltip": "Escapa caracteres especiales como '|' para evitar que se rompa la tabla.",
+    "textAlign": "Alineación de Texto",
+    "alignLeft": "Izquierda",
+    "alignCenter": "Centro",
+    "alignRight": "Derecha",
+    "multiline": "Manejo Multilínea",
+    "multilinePreserve": "Preservar (<br>)",
+    "multilineEscape": "Escapar (\\n)",
+    "multilineBreak": "Romper Líneas (espacio)",
+    "csvOptionsTitle": "Opciones de Salida CSV",
+    "useDoubleQuotes": "Usar comillas dobles",
+    "addBom": "Añadir BOM UTF-8",
+    "addBomTooltip": "Añade la marca de orden de bytes UTF-8 para ayudar a Excel y otro software a reconocer la codificación.",
+    "delimiter": "Delimitador",
+    "delimiterSemicolon": "Punto y coma (;)",
+    "delimiterComma": "Coma (,)",
+    "delimiterTab": "Tabulación (\\t)",
+    "delimiterPipe": "Barra vertical (|)",
+    "delimiterSpace": "Espacio",
+    "outputPlaceholderMarkdown": "Tu tabla Markdown aparecerá aquí...",
+    "outputPlaceholderCsv": "Tus datos CSV aparecerán aquí...",
+    "outputDescriptionMarkdown": "Aquí está tu tabla en formato Markdown.",
+    "outputDescriptionCsv": "Aquí están tus datos en formato CSV.",
+    "toast": {
+        "copiedTitle": "¡Copiado!",
+        "copiedDescriptionMarkdown": "Contenido Markdown copiado al portapapeles.",
+        "copiedDescriptionCsv": "Contenido CSV copiado al portapapeles.",
+        "nothingToCopyTitle": "Nada que copiar",
+        "nothingToCopyDescription": "La salida está vacía.",
+        "fileUploadedTitle": "Archivo cargado",
+        "fileUploadedDescription": "{fileName} ha sido cargado con éxito.",
+        "fileReadErrorTitle": "Error al leer el archivo",
+        "fileReadErrorDescription": "No se pudo leer el archivo seleccionado.",
+        "encodingErrorTitle": "Error de Codificación",
+        "encodingErrorDescription": "No se pudo decodificar el archivo con {encoding}.",
+        "conversionErrorTitle": "Error de Conversión",
+        "conversionErrorDescription": "No se pudieron procesar los datos. Verifique el formato."
+    }
+  },
+  "footer": {
+    "copyright": "© {year} SheetMark. Todos los derechos reservados."
+  }
+}

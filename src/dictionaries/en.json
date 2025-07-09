@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "title": "SheetMark - Convert Spreadsheets to Markdown Tables",
+    "description": "Easily convert your spreadsheet data from CSV, TSV, or by pasting directly into a clean Markdown table. Fast, free, and easy to use.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, sheetmark, hoja de calculo a markdown, csv a markdown"
+  },
+  "header": {
+    "title": "SheetMark",
+    "buyMeACoffee": "Buy Me a Coffee",
+    "language": "Language"
+  },
+  "page": {
+    "title": "Convert Spreadsheets to Markdown",
+    "description": "Paste your data or upload a CSV/TSV file and get a Markdown table instantly."
+  },
+  "converter": {
+    "inputCardTitle": "Input Data",
+    "inputCardDescription": "Paste your spreadsheet data here or upload a file.",
+    "uploadButton": "Upload File",
+    "inputPlaceholder": "Paste your spreadsheet data here (comma or tab separated)...",
+    "outputCardTitle": "Output",
+    "copyButton": "Copy",
+    "encodingLabel": "File Encoding (Input)",
+    "encodingDescription": "Affects uploaded files. If you see '', try another option.",
+    "outputTypeMarkdown": "Markdown",
+    "outputTypeCsv": "CSV",
+    "markdownOptionsTitle": "Markdown Output Options",
+    "firstHeader": "First Row as Header",
+    "prettyMarkdown": "Pretty-Print Markdown",
+    "simpleMarkdown": "Simple Markdown Format",
+    "addLineNumbers": "Add Row Numbers",
+    "boldFirstRow": "Bold First Row",
+    "boldFirstColumn": "Bold First Column",
+    "escapeChars": "Escape Characters",
+    "escapeCharsTooltip": "Escapes special characters like '|' to prevent table breaking.",
+    "textAlign": "Text Alignment",
+    "alignLeft": "Left",
+    "alignCenter": "Center",
+    "alignRight": "Right",
+    "multiline": "Multiline Handling",
+    "multilinePreserve": "Preserve (<br>)",
+    "multilineEscape": "Escape (\\n)",
+    "multilineBreak": "Break Lines (space)",
+    "csvOptionsTitle": "CSV Output Options",
+    "useDoubleQuotes": "Use double quotes",
+    "addBom": "Add UTF-8 BOM",
+    "addBomTooltip": "Add UTF-8 byte order mark to help Excel and other software recognize encoding.",
+    "delimiter": "Delimiter",
+    "delimiterSemicolon": "Semicolon (;)",
+    "delimiterComma": "Comma (,)",
+    "delimiterTab": "Tab (\\t)",
+    "delimiterPipe": "Pipe (|)",
+    "delimiterSpace": "Space",
+    "outputPlaceholderMarkdown": "Your Markdown table will appear here...",
+    "outputPlaceholderCsv": "Your CSV data will appear here...",
+    "outputDescriptionMarkdown": "Here is your table in Markdown format.",
+    "outputDescriptionCsv": "Here is your data in CSV format.",
+    "toast": {
+        "copiedTitle": "Copied!",
+        "copiedDescriptionMarkdown": "Markdown content copied to clipboard.",
+        "copiedDescriptionCsv": "CSV content copied to clipboard.",
+        "nothingToCopyTitle": "Nothing to copy",
+        "nothingToCopyDescription": "The output is empty.",
+        "fileUploadedTitle": "File uploaded",
+        "fileUploadedDescription": "{fileName} has been successfully uploaded.",
+        "fileReadErrorTitle": "Error reading file",
+        "fileReadErrorDescription": "Could not read the selected file.",
+        "encodingErrorTitle": "Encoding Error",
+        "encodingErrorDescription": "Could not decode the file with {encoding}.",
+        "conversionErrorTitle": "Conversion Error",
+        "conversionErrorDescription": "Could not process the data. Please check the format."
+    }
+  },
+  "footer": {
+    "copyright": "© {year} SheetMark. All rights reserved."
+  }
+}

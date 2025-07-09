@@ -13,7 +13,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function Converter() {
+type ConverterProps = {
+    dictionary: any;
+}
+
+export function Converter({ dictionary }: ConverterProps) {
     const [inputData, setInputData] = useState('');
     const [outputData, setOutputData] = useState('');
     const [isConverting, startTransition] = useTransition();
@@ -49,13 +53,13 @@ export function Converter() {
                 setInputData(text);
             } catch (error) {
                 toast({
-                    title: "Error de Codificación",
-                    description: `No se pudo decodificar el archivo con ${encoding}.`,
+                    title: dictionary.toast.encodingErrorTitle,
+                    description: dictionary.toast.encodingErrorDescription.replace('{encoding}', encoding),
                     variant: "destructive"
                 });
             }
         }
-    }, [encoding, fileBuffer, toast]);
+    }, [encoding, fileBuffer, toast, dictionary]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputData(e.target.value);
@@ -95,11 +99,11 @@ export function Converter() {
         const processCell = (content: string): string => {
             let processed = content || '';
             if (multilineHandling === 'preserve') {
-                processed = processed.replace(/\n/g, '<br>');
+                processed = processed.replace(/\\n/g, '<br>');
             } else if (multilineHandling === 'escape') {
-                processed = processed.replace(/\n/g, '\\n');
+                processed = processed.replace(/\\n/g, '\\\\n');
             } else if (multilineHandling === 'break') {
-                processed = processed.replace(/\n/g, ' ');
+                processed = processed.replace(/\\n/g, ' ');
             }
             if (escapeChars) {
                 processed = processed.replace(/\|/g, '\\|');
@@ -206,8 +210,8 @@ export function Converter() {
             } catch (error) {
                 console.error("Conversion Error:", error);
                 toast({
-                    title: "Error de Conversión",
-                    description: "No se pudieron procesar los datos. Verifique el formato.",
+                    title: dictionary.toast.conversionErrorTitle,
+                    description: dictionary.toast.conversionErrorDescription,
                     variant: "destructive"
                 });
                 setOutputData('');
@@ -219,16 +223,16 @@ export function Converter() {
     const handleCopy = () => {
         if (!outputData) {
             toast({ 
-                title: "Nada que copiar", 
-                description: "La salida está vacía.", 
+                title: dictionary.toast.nothingToCopyTitle, 
+                description: dictionary.toast.nothingToCopyDescription, 
                 variant: "destructive"
             });
             return;
         }
         navigator.clipboard.writeText(outputData);
         toast({ 
-            title: "¡Copiado!", 
-            description: `Contenido ${outputType === 'markdown' ? 'Markdown' : 'CSV'} copiado al portapapeles.` 
+            title: dictionary.toast.copiedTitle, 
+            description: outputType === 'markdown' ? dictionary.toast.copiedDescriptionMarkdown : dictionary.toast.copiedDescriptionCsv
         });
     };
 
@@ -241,15 +245,15 @@ export function Converter() {
                 if(buffer){
                     setFileBuffer(buffer);
                     toast({ 
-                        title: "Archivo cargado",
-                        description: `${file.name} ha sido cargado con éxito.` 
+                        title: dictionary.toast.fileUploadedTitle,
+                        description: dictionary.toast.fileUploadedDescription.replace('{fileName}', file.name)
                     });
                 }
             };
             reader.onerror = () => {
                  toast({
-                    title: "Error al leer el archivo",
-                    description: "No se pudo leer el archivo seleccionado.",
+                    title: dictionary.toast.fileReadErrorTitle,
+                    description: dictionary.toast.fileReadErrorDescription,
                     variant: "destructive"
                 });
             }
@@ -265,18 +269,18 @@ export function Converter() {
     };
 
     const outputDescription = outputType === 'markdown' 
-        ? "Aquí está tu tabla en formato Markdown."
-        : "Aquí están tus datos en formato CSV.";
+        ? dictionary.outputDescriptionMarkdown
+        : dictionary.outputDescriptionCsv;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                        <span>Datos de Entrada</span>
+                        <span>{dictionary.inputCardTitle}</span>
                         <Button variant="outline" size="sm" onClick={handleUploadClick}>
                             <Upload className="mr-2 h-4 w-4" />
-                            Subir Archivo
+                            {dictionary.uploadButton}
                         </Button>
                         <input 
                             type="file" 
@@ -286,15 +290,15 @@ export function Converter() {
                             accept=".csv, .tsv, text/plain, .xlsx, .xls"
                         />
                     </CardTitle>
-                    <CardDescription>Pega aquí los datos de tu hoja de cálculo o sube un archivo.</CardDescription>
+                    <CardDescription>{dictionary.inputCardDescription}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Label htmlFor="input-data" className="sr-only">Datos de Entrada</Label>
+                    <Label htmlFor="input-data" className="sr-only">{dictionary.inputCardTitle}</Label>
                     <Textarea
                         id="input-data"
                         value={inputData}
                         onChange={handleInputChange}
-                        placeholder="Pega aquí los datos de tu hoja de cálculo (separados por comas o tabulaciones)..."
+                        placeholder={dictionary.inputPlaceholder}
                         className="min-h-[300px] font-mono text-sm"
                         aria-label="Área de texto para datos de entrada"
                     />
@@ -314,17 +318,17 @@ export function Converter() {
                 <Card className="w-full">
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                             <CardTitle>Salida</CardTitle>
+                             <CardTitle>{dictionary.outputCardTitle}</CardTitle>
                              <Button variant="default" size="sm" onClick={handleCopy} disabled={!outputData || isConverting}>
                                 <Copy className="mr-2 h-4 w-4" />
-                                Copiar
+                                {dictionary.copyButton}
                             </Button>
                         </div>
                         <CardDescription>{outputDescription}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-1.5 mb-4">
-                            <Label htmlFor="encoding">Codificación de Archivo (Entrada)</Label>
+                            <Label htmlFor="encoding">{dictionary.encodingLabel}</Label>
                             <Select value={encoding} onValueChange={setEncoding}>
                                 <SelectTrigger id="encoding" className="bg-background w-full sm:max-w-xs">
                                     <SelectValue />
@@ -338,60 +342,60 @@ export function Converter() {
                                     <SelectItem value="ISO-8859-15">ISO-8859-15</SelectItem>
                                     <SelectItem value="macintosh">MacRoman</SelectItem>
                                     <SelectItem value="windows-1251">Windows-1251 (Cyrillic)</SelectItem>
-                                    <SelectItem value="Shift_JIS">Shift_JIS (Japonés)</SelectItem>
-                                    <SelectItem value="EUC-KR">EUC-KR (Coreano)</SelectItem>
-                                    <SelectItem value="GBK">GBK (Chino Simplificado)</SelectItem>
+                                    <SelectItem value="Shift_JIS">Shift_JIS (Japanese)</SelectItem>
+                                    <SelectItem value="EUC-KR">EUC-KR (Korean)</SelectItem>
+                                    <SelectItem value="GBK">GBK (Simplified Chinese)</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p className="text-xs text-muted-foreground">Afecta a archivos subidos. Si ves '', prueba otra opción.</p>
+                            <p className="text-xs text-muted-foreground">{dictionary.encodingDescription}</p>
                         </div>
 
                         <Tabs value={outputType} onValueChange={(v) => setOutputType(v as 'markdown' | 'csv')} className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="markdown">Markdown</TabsTrigger>
-                                <TabsTrigger value="csv">CSV</TabsTrigger>
+                                <TabsTrigger value="markdown">{dictionary.outputTypeMarkdown}</TabsTrigger>
+                                <TabsTrigger value="csv">{dictionary.outputTypeCsv}</TabsTrigger>
                             </TabsList>
                         </Tabs>
 
                         {outputType === 'markdown' && (
                            <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
-                               <p className="text-sm font-medium">Opciones de Salida Markdown</p>
+                               <p className="text-sm font-medium">{dictionary.markdownOptionsTitle}</p>
                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                    <div className="flex items-center space-x-2">
                                         <Checkbox id="first-header" checked={firstHeader} onCheckedChange={(c) => setFirstHeader(!!c)} />
-                                        <Label htmlFor="first-header">Primera Fila como Encabezado</Label>
+                                        <Label htmlFor="first-header">{dictionary.firstHeader}</Label>
                                    </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="pretty-markdown" checked={prettyMarkdown} onCheckedChange={(c) => { setPrettyMarkdown(!!c); if(c) setSimpleMarkdown(false); }} />
-                                        <Label htmlFor="pretty-markdown">Tabla Markdown Estilizada</Label>
+                                        <Label htmlFor="pretty-markdown">{dictionary.prettyMarkdown}</Label>
                                    </div>
                                    <div className="flex items-center space-x-2">
                                         <Checkbox id="simple-markdown" checked={simpleMarkdown} onCheckedChange={(c) => { setSimpleMarkdown(!!c); if(c) setPrettyMarkdown(false); }} />
-                                        <Label htmlFor="simple-markdown">Formato Markdown Simple</Label>
+                                        <Label htmlFor="simple-markdown">{dictionary.simpleMarkdown}</Label>
                                    </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="add-line-numbers" checked={addLineNumbers} onCheckedChange={(c) => setAddLineNumbers(!!c)} />
-                                        <Label htmlFor="add-line-numbers">Añadir Números de Fila</Label>
+                                        <Label htmlFor="add-line-numbers">{dictionary.addLineNumbers}</Label>
                                    </div>
                                    <div className="flex items-center space-x-2">
                                         <Checkbox id="bold-first-row" checked={boldFirstRow} onCheckedChange={(c) => setBoldFirstRow(!!c)} />
-                                        <Label htmlFor="bold-first-row">Negrita en Primera Fila</Label>
+                                        <Label htmlFor="bold-first-row">{dictionary.boldFirstRow}</Label>
                                    </div>
                                    <div className="flex items-center space-x-2">
                                         <Checkbox id="bold-first-column" checked={boldFirstColumn} onCheckedChange={(c) => setBoldFirstColumn(!!c)} />
-                                        <Label htmlFor="bold-first-column">Negrita en Primera Columna</Label>
+                                        <Label htmlFor="bold-first-column">{dictionary.boldFirstColumn}</Label>
                                    </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="escape-chars" checked={escapeChars} onCheckedChange={(c) => setEscapeChars(!!c)} />
                                         <div className="flex items-center gap-1">
-                                            <Label htmlFor="escape-chars" className="cursor-pointer">Escapar Caracteres</Label>
+                                            <Label htmlFor="escape-chars" className="cursor-pointer">{dictionary.escapeChars}</Label>
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Info className="h-4 w-4 text-muted-foreground" />
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>Escapa caracteres especiales como '|' para<br/>evitar que se rompa la tabla.</p>
+                                                        <p>{dictionary.escapeCharsTooltip}</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -400,24 +404,24 @@ export function Converter() {
                                </div>
                                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="text-align">Alineación de Texto</Label>
+                                        <Label htmlFor="text-align">{dictionary.textAlign}</Label>
                                         <Select value={textAlign} onValueChange={setTextAlign}>
                                             <SelectTrigger id="text-align" className="bg-background"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="left">Izquierda</SelectItem>
-                                                <SelectItem value="center">Centro</SelectItem>
-                                                <SelectItem value="right">Derecha</SelectItem>
+                                                <SelectItem value="left">{dictionary.alignLeft}</SelectItem>
+                                                <SelectItem value="center">{dictionary.alignCenter}</SelectItem>
+                                                <SelectItem value="right">{dictionary.alignRight}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="multiline">Manejo Multilínea</Label>
+                                        <Label htmlFor="multiline">{dictionary.multiline}</Label>
                                         <Select value={multilineHandling} onValueChange={setMultilineHandling}>
                                             <SelectTrigger id="multiline" className="bg-background"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="preserve">Preservar (&lt;br&gt;)</SelectItem>
-                                                <SelectItem value="escape">Escapar (\\n)</SelectItem>
-                                                <SelectItem value="break">Romper Líneas (espacio)</SelectItem>
+                                                <SelectItem value="preserve">{dictionary.multilinePreserve}</SelectItem>
+                                                <SelectItem value="escape">{dictionary.multilineEscape}</SelectItem>
+                                                <SelectItem value="break">{dictionary.multilineBreak}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -427,38 +431,38 @@ export function Converter() {
 
                         {outputType === 'csv' && (
                            <div className="mt-4 p-4 border rounded-lg bg-card">
-                                <p className="text-sm font-medium mb-4">Opciones de Salida CSV</p>
+                                <p className="text-sm font-medium mb-4">{dictionary.csvOptionsTitle}</p>
                                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="double-quotes" checked={useDoubleQuotes} onCheckedChange={(checked) => setUseDoubleQuotes(!!checked)} />
-                                        <Label htmlFor="double-quotes" className="cursor-pointer leading-none">Usar comillas dobles</Label>
+                                        <Label htmlFor="double-quotes" className="cursor-pointer leading-none">{dictionary.useDoubleQuotes}</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="add-bom" checked={addBom} onCheckedChange={(c) => setAddBom(!!c)} />
                                         <div className="flex items-center gap-1">
-                                            <Label htmlFor="add-bom" className="cursor-pointer leading-none">UTF-8 BOM</Label>
+                                            <Label htmlFor="add-bom" className="cursor-pointer leading-none">{dictionary.addBom}</Label>
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Info className="h-4 w-4 text-muted-foreground" />
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>Add UTF-8 byte order mark to help Excel and other software recognize encoding.</p>
+                                                        <p>{dictionary.addBomTooltip}</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
                                     </div>
                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="delimiter">Delimitador</Label>
+                                        <Label htmlFor="delimiter">{dictionary.delimiter}</Label>
                                         <Select value={delimiter} onValueChange={setDelimiter}>
                                             <SelectTrigger id="delimiter" className="bg-background"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value=";">Punto y coma (;)</SelectItem>
-                                                <SelectItem value=",">Coma (,)</SelectItem>
-                                                <SelectItem value="\t">Tabulación (\t)</SelectItem>
-                                                <SelectItem value="|">Barra vertical (|)</SelectItem>
-                                                <SelectItem value=" ">Espacio</SelectItem>
+                                                <SelectItem value=";">{dictionary.delimiterSemicolon}</SelectItem>
+                                                <SelectItem value=",">{dictionary.delimiterComma}</SelectItem>
+                                                <SelectItem value="\t">{dictionary.delimiterTab}</SelectItem>
+                                                <SelectItem value="|">{dictionary.delimiterPipe}</SelectItem>
+                                                <SelectItem value=" ">{dictionary.delimiterSpace}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -466,12 +470,12 @@ export function Converter() {
                             </div>
                         )}
                         <div className="mt-4">
-                            <Label htmlFor="output-data" className="sr-only">Salida</Label>
+                            <Label htmlFor="output-data" className="sr-only">{dictionary.outputCardTitle}</Label>
                             <Textarea
                                 id="output-data"
                                 value={outputData}
                                 readOnly
-                                placeholder={outputType === 'markdown' ? "Tu tabla Markdown aparecerá aquí..." : "Tus datos CSV aparecerán aquí..."}
+                                placeholder={outputType === 'markdown' ? dictionary.outputPlaceholderMarkdown : dictionary.outputPlaceholderCsv}
                                 className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
                                 aria-label="Área de texto para salida"
                             />
