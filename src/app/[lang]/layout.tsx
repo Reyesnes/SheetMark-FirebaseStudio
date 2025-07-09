@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '../globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { NoFlashScript } from '@/components/no-flash';
@@ -49,6 +50,19 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet" />
+        <Script
+            data-name="BMC-Widget"
+            data-cfasync="false"
+            src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+            data-id="XTFyjwVSYV"
+            data-description="Support me on Buy me a coffee!"
+            data-message="Enjoying the tool? You can support my work with a coffee or a beer☕🍻🙂 "
+            data-color="#5F7FFF"
+            data-position="Right"
+            data-x_margin="18"
+            data-y_margin="18"
+            strategy="afterInteractive"
+        />
       </head>
       <body className="font-sans antialiased">
         {children}
