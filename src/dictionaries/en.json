@@ -1,9 +1,9 @@
 
 {
   "metadata": {
-    "title": "SheetMark - Convert Spreadsheets to Markdown, JSON, PNG & More",
-    "description": "Easily convert your spreadsheet data from CSV, TSV, or by pasting directly into a clean Markdown, JSON, PNG, or HTML table. Fast, free, and easy to use.",
-    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, csv to png, sheetmark, hoja de calculo a markdown, csv a markdown"
+    "title": "SheetMark - Convert Spreadsheets to Markdown, JSON & More",
+    "description": "Easily convert your spreadsheet data from CSV, TSV, or by pasting directly into a clean Markdown, JSON, or HTML table. Fast, free, and easy to use.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, sheetmark, hoja de calculo a markdown, csv a markdown"
   },
   "header": {
     "title": "SheetMark",
@@ -12,7 +12,7 @@
   },
   "page": {
     "title": "Convert Spreadsheets to Multiple Formats",
-    "description": "Paste your data or upload a file and get a Markdown, CSV, SQL, HTML, JSON, or PNG table instantly."
+    "description": "Paste your data or upload a file and get a Markdown, CSV, SQL, HTML, or JSON table instantly."
   },
   "converter": {
     "inputCardTitle": "Input Data",
@@ -94,19 +94,6 @@
         "formatObjectObjects": "Object of Objects",
         "outputDescriptionJson": "Here is your data in JSON format.",
         "outputPlaceholderJson": "Your JSON data will appear here..."
-    },
-    "png": {
-        "outputTypePng": "PNG",
-        "pngOptionsTitle": "PNG Output Options",
-        "tableStyle": "Table Style",
-        "fontFamily": "Font Family",
-        "fontSize": "Font Size",
-        "outputDescriptionPng": "Here is your table as a PNG image.",
-        "outputPlaceholderPng": "Your PNG image preview will appear here...",
-        "previewAlt": "PNG output preview",
-        "copyNotSupportedTitle": "Copy Not Supported",
-        "copyNotSupportedDescription": "Copying images to the clipboard is not supported. Please use the download button.",
-        "conversionError": "Could not generate the image. Please try again."
     },
     "outputPlaceholderMarkdown": "Your Markdown table will appear here...",
     "outputPlaceholderCsv": "Your CSV data will appear here...",

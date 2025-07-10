@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useTransition, useEffect } from 'react';
-import * as htmlToImage from 'html-to-image';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel as SelectListLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 
@@ -18,47 +17,15 @@ type ConverterProps = {
     dictionary: any;
 }
 
-const tableStyles = [
-    {
-        category: 'Light',
-        styles: [
-            { name: 'Plain Light', headerBg: '#FFFFFF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#E0E0E0', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Light Blue', headerBg: '#F0F8FF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F0F8FF', borderColor: '#A9CCE3', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Light Green', headerBg: '#F2FFF6', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2FFF6', borderColor: '#A9D9B8', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Light Grey', headerBg: '#F2F2F2', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2F2F2', borderColor: '#D3D3D3', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Blue Grid', headerBg: '#DEEBF7', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#B2CDE5', fontColor: '#000000', borders: 'all' },
-            { name: 'Green Grid', headerBg: '#E2EFDA', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#C5E0B4', fontColor: '#000000', borders: 'all' },
-        ],
-    },
-    {
-        category: 'Medium',
-        styles: [
-            { name: 'Medium Black', headerBg: '#000000', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#F2F2F2', borderColor: '#D3D3D3', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Medium Blue', headerBg: '#4472C4', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#D9E2F3', borderColor: '#B4C6E7', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Medium Orange', headerBg: '#ED7D31', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FDEBDD', borderColor: '#F8CBAD', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Medium Green', headerBg: '#548235', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#E2EFDA', borderColor: '#C5E0B4', fontColor: '#000000', borders: 'horizontal' },
-        ],
-    },
-    {
-        category: 'Dark',
-        styles: [
-            { name: 'Dark Grey', headerBg: '#333333', headerColor: '#FFFFFF', rowBg: '#595959', altRowBg: '#434343', borderColor: '#757575', fontColor: '#FFFFFF', borders: 'horizontal' },
-            { name: 'Dark Blue', headerBg: '#2F5597', headerColor: '#FFFFFF', rowBg: '#597AB8', altRowBg: '#4A6296', borderColor: '#8FAADC', fontColor: '#FFFFFF', borders: 'horizontal' },
-            { name: 'Dark Green', headerBg: '#385723', headerColor: '#FFFFFF', rowBg: '#5B794A', altRowBg: '#4A6539', borderColor: '#849E6F', fontColor: '#FFFFFF', borders: 'horizontal' },
-        ],
-    },
-];
-
 export function Converter({ dictionary }: ConverterProps) {
     const [inputData, setInputData] = useState('');
     const [outputData, setOutputData] = useState('');
     const [isConverting, startTransition] = useTransition();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const imagePreviewRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
     // Common State
-    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql' | 'html' | 'json' | 'png'>('markdown');
+    const [outputType, setOutputType] = useState<'markdown' | 'csv' | 'sql' | 'html' | 'json'>('markdown');
     const [encoding, setEncoding] = useState('UTF-8');
     const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
     const [firstHeader, setFirstHeader] = useState(true);
@@ -98,11 +65,6 @@ export function Converter({ dictionary }: ConverterProps) {
     // JSON State
     const [jsonFormat, setJsonFormat] = useState('array_objects'); // array_objects, array_arrays, object_objects
     const [minifyJson, setMinifyJson] = useState(false);
-
-    // PNG State
-    const [pngFontSize, setPngFontSize] = useState('14');
-    const [pngFontFamily, setPngFontFamily] = useState('sans-serif');
-    const [activeTableStyle, setActiveTableStyle] = useState(tableStyles[0].styles[0]);
 
 
     useEffect(() => {
@@ -461,31 +423,6 @@ export function Converter({ dictionary }: ConverterProps) {
         return JSON.stringify(result, null, minifyJson ? 0 : 2);
     };
 
-    const convertToPng = async (): Promise<string> => {
-        if (!imagePreviewRef.current) return '';
-        
-        const node = imagePreviewRef.current;
-        try {
-            const dataUrl = await htmlToImage.toPng(node, {
-                quality: 1,
-                pixelRatio: 2,
-                backgroundColor: activeTableStyle.rowBg,
-                 style: {
-                    margin: '0',
-                 }
-            });
-            return dataUrl;
-        } catch (error) {
-            console.error('oops, something went wrong!', error);
-            toast({
-                title: dictionary.toast.conversionErrorTitle,
-                description: dictionary.png.conversionError,
-                variant: "destructive"
-            });
-            return '';
-        }
-    };
-
     const performConversion = async () => {
         if (!inputData.trim()) {
             setOutputData('');
@@ -503,10 +440,6 @@ export function Converter({ dictionary }: ConverterProps) {
                 setOutputData(convertToHtml(table));
             } else if (outputType === 'json') {
                 setOutputData(convertToJson(table));
-            } else if (outputType === 'png') {
-                 // Trigger PNG conversion, which will update state
-                 const pngDataUrl = await convertToPng();
-                 setOutputData(pngDataUrl);
             }
         } catch (error) {
             console.error("Conversion Error:", error);
@@ -529,7 +462,7 @@ export function Converter({ dictionary }: ConverterProps) {
         prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, 
         multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, 
         useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId,
-        jsonFormat, minifyJson, pngFontSize, pngFontFamily, activeTableStyle
+        jsonFormat, minifyJson
     ]);
 
 
@@ -542,15 +475,7 @@ export function Converter({ dictionary }: ConverterProps) {
             });
             return;
         }
-        if (outputType === 'png') {
-             toast({
-                title: dictionary.png.copyNotSupportedTitle,
-                description: dictionary.png.copyNotSupportedDescription,
-                variant: "destructive"
-            });
-            return;
-        }
-
+        
         navigator.clipboard.writeText(outputData);
         let description = '';
         if (outputType === 'markdown') description = dictionary.toast.copiedDescriptionMarkdown;
@@ -582,28 +507,20 @@ export function Converter({ dictionary }: ConverterProps) {
             sql: 'sql',
             html: 'html',
             json: 'json',
-            png: 'png'
         };
         const fileExtension = fileExtensionMap[outputType];
         const fileName = `sheetmark_output.${fileExtension}`;
         
+        const blob = new Blob([outputData], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-
-        if (outputType === 'png') {
-            link.href = outputData;
-        } else {
-            const blob = new Blob([outputData], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-        }
-        
+        link.href = url;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        if (outputType !== 'png') {
-            URL.revokeObjectURL(link.href);
-        }
+        URL.revokeObjectURL(link.href);
+        
 
         toast({
             title: dictionary.toast.downloadedTitle,
@@ -649,7 +566,6 @@ export function Converter({ dictionary }: ConverterProps) {
         sql: dictionary.outputDescriptionSql,
         html: dictionary.outputDescriptionHtml,
         json: dictionary.json.outputDescriptionJson,
-        png: dictionary.png.outputDescriptionPng
     }[outputType];
         
     const outputPlaceholder = {
@@ -658,88 +574,7 @@ export function Converter({ dictionary }: ConverterProps) {
         sql: dictionary.outputPlaceholderSql,
         html: dictionary.outputPlaceholderHtml,
         json: dictionary.json.outputPlaceholderJson,
-        png: dictionary.png.outputPlaceholderPng
     }[outputType] || '';
-
-    const PngPreviewTable = () => {
-        const tableData = parseInput(inputData);
-        if (!tableData || tableData.length === 0) return null;
-        
-        const headerRow = firstHeader ? tableData[0] : [];
-        const bodyRows = firstHeader ? tableData.slice(1) : tableData;
-        const s = activeTableStyle;
-        const cellPadding = '8px 12px';
-
-        const getBorderStyle = (type: 'all' | 'horizontal' | 'none', position: 'header' | 'cell') => {
-            if (type === 'none') {
-                return 'none';
-            }
-            const borderStyle = `1px solid ${s.borderColor}`;
-            if (type === 'all') {
-                return borderStyle;
-            }
-            if (type === 'horizontal') {
-                if (position === 'header') {
-                    return `none none ${borderStyle} none`;
-                }
-                return `none none ${borderStyle} none`;
-            }
-            return 'none';
-        };
-
-        const headerCellStyle: React.CSSProperties = {
-            backgroundColor: s.headerBg,
-            color: s.headerColor,
-            padding: cellPadding,
-            fontWeight: 'bold',
-            borderBottom: `2px solid ${s.borderColor}`,
-            border: getBorderStyle(s.borders, 'header'),
-        };
-
-        const getCellStyles = (rowIndex: number): React.CSSProperties => ({
-            backgroundColor: rowIndex % 2 === 0 ? s.rowBg : s.altRowBg,
-            color: s.fontColor,
-            padding: cellPadding,
-            border: getBorderStyle(s.borders, 'cell'),
-        });
-
-        return (
-             <div 
-                ref={imagePreviewRef} 
-                className="absolute -left-[9999px] -top-[9999px] p-4"
-                 style={{ backgroundColor: s.rowBg }}
-            >
-                <table 
-                    style={{ 
-                        borderCollapse: 'collapse',
-                        fontFamily: pngFontFamily,
-                        fontSize: `${pngFontSize}px`,
-                        color: s.fontColor,
-                        borderSpacing: 0,
-                    }}
-                >
-                    {firstHeader && (
-                        <thead>
-                            <tr>
-                                {headerRow.map((cell, i) => (
-                                    <th key={i} style={headerCellStyle}>{cell}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                    )}
-                    <tbody>
-                        {bodyRows.map((row, i) => (
-                            <tr key={i}>
-                                {row.map((cell, j) => (
-                                    <td key={j} style={getCellStyles(i)}>{cell}</td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -829,13 +664,12 @@ export function Converter({ dictionary }: ConverterProps) {
                         </div>
 
                         <Tabs value={outputType} onValueChange={(v) => setOutputType(v as any)} className="w-full">
-                            <TabsList className="grid w-full grid-cols-6">
+                            <TabsList className="grid w-full grid-cols-5">
                                 <TabsTrigger value="markdown">{dictionary.outputTypeMarkdown}</TabsTrigger>
                                 <TabsTrigger value="csv">{dictionary.outputTypeCsv}</TabsTrigger>
                                 <TabsTrigger value="sql">{dictionary.outputTypeSql}</TabsTrigger>
                                 <TabsTrigger value="html">{dictionary.outputTypeHtml}</TabsTrigger>
                                 <TabsTrigger value="json">{dictionary.json.outputTypeJson}</TabsTrigger>
-                                <TabsTrigger value="png">{dictionary.png.outputTypePng}</TabsTrigger>
                             </TabsList>
                             {outputType === 'markdown' && (
                             <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
@@ -1110,95 +944,18 @@ export function Converter({ dictionary }: ConverterProps) {
                                     </div>
                                 </div>
                             )}
-
-                            {outputType === 'png' && (
-                                <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
-                                    <p className="text-sm font-medium">{dictionary.png.pngOptionsTitle}</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="grid gap-1.5">
-                                            <Label htmlFor="png-table-style">{dictionary.png.tableStyle}</Label>
-                                            <Select
-                                                value={activeTableStyle.name}
-                                                onValueChange={(styleName) => {
-                                                    const newStyle = tableStyles.flatMap(cat => cat.styles).find(s => s.name === styleName);
-                                                    if (newStyle) setActiveTableStyle(newStyle);
-                                                }}
-                                            >
-                                                <SelectTrigger id="png-table-style" className="bg-background"><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    {tableStyles.map(category => (
-                                                        <SelectGroup key={category.category}>
-                                                            <SelectListLabel>{category.category}</SelectListLabel>
-                                                            {category.styles.map(style => (
-                                                                <SelectItem key={style.name} value={style.name}>
-                                                                    {style.name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectGroup>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-1.5">
-                                            <Label htmlFor="png-font-family">{dictionary.png.fontFamily}</Label>
-                                            <Select value={pngFontFamily} onValueChange={setPngFontFamily}>
-                                                <SelectTrigger id="png-font-family" className="bg-background" style={{fontFamily: pngFontFamily}}><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="sans-serif" style={{fontFamily: 'sans-serif'}}>Sans-serif</SelectItem>
-                                                    <SelectItem value="serif" style={{fontFamily: 'serif'}}>Serif</SelectItem>
-                                                    <SelectItem value="monospace" style={{fontFamily: 'monospace'}}>Monospace</SelectItem>
-                                                    <SelectItem value="Arial, sans-serif" style={{fontFamily: 'Arial, sans-serif'}}>Arial</SelectItem>
-                                                    <SelectItem value="'Times New Roman', serif" style={{fontFamily: "'Times New Roman', serif"}}>Times New Roman</SelectItem>
-                                                    <SelectItem value="'Courier New', monospace" style={{fontFamily: "'Courier New', monospace"}}>Courier New</SelectItem>
-                                                    <SelectItem value="Verdana, sans-serif" style={{fontFamily: 'Verdana, sans-serif'}}>Verdana</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-1.5 sm:col-span-2">
-                                            <Label htmlFor="png-font-size">{dictionary.png.fontSize}</Label>
-                                            <Select value={pngFontSize} onValueChange={setPngFontSize}>
-                                                <SelectTrigger id="png-font-size" className="bg-background"><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="8">8px</SelectItem>
-                                                    <SelectItem value="10">10px</SelectItem>
-                                                    <SelectItem value="12">12px</SelectItem>
-                                                    <SelectItem value="14">14px</SelectItem>
-                                                    <SelectItem value="16">16px</SelectItem>
-                                                    <SelectItem value="18">18px</SelectItem>
-                                                    <SelectItem value="20">20px</SelectItem>
-                                                    <SelectItem value="24">24px</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <PngPreviewTable />
-                                </div>
-                            )}
-
                         </Tabs>
 
                         <div className="mt-4">
                             <Label htmlFor="output-data" className="sr-only">{dictionary.outputCardTitle}</Label>
-                            {outputType === 'png' ? (
-                                <div className="min-h-[300px] bg-muted/50 rounded-md flex items-center justify-center p-4">
-                                    {isConverting ? (
-                                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                                    ) : outputData ? (
-                                        <img src={outputData} alt={dictionary.png.previewAlt} className="max-w-full max-h-full object-contain" />
-                                    ) : (
-                                        <p className="text-muted-foreground">{outputPlaceholder}</p>
-                                    )}
-                                </div>
-                            ) : (
-                                <Textarea
-                                    id="output-data"
-                                    value={outputData}
-                                    readOnly
-                                    placeholder={outputPlaceholder}
-                                    className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
-                                    aria-label="Área de texto para salida"
-                                />
-                            )}
+                            <Textarea
+                                id="output-data"
+                                value={outputData}
+                                readOnly
+                                placeholder={outputPlaceholder}
+                                className="min-h-[300px] bg-muted/50 font-mono text-sm transition-opacity duration-300"
+                                aria-label="Área de texto para salida"
+                            />
                         </div>
                     </CardContent>
                 </Card>

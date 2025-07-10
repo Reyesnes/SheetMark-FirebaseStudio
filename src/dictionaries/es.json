@@ -1,9 +1,9 @@
 
 {
   "metadata": {
-    "title": "SheetMark - Convierte Hojas de Cálculo a Markdown, JSON, PNG y Más",
-    "description": "Convierte fácilmente tus datos de hojas de cálculo de CSV, TSV o pegando directamente en una tabla Markdown, JSON, PNG o HTML. Rápido, gratis y fácil de usar.",
-    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, csv a png, sheetmark, hoja de calculo a markdown, csv a markdown"
+    "title": "SheetMark - Convierte Hojas de Cálculo a Markdown, JSON y Más",
+    "description": "Convierte fácilmente tus datos de hojas de cálculo de CSV, TSV o pegando directamente en una tabla Markdown, JSON o HTML. Rápido, gratis y fácil de usar.",
+    "keywords": "spreadsheet to markdown, csv to markdown, excel to markdown, table converter, markdown table generator, csv to json, sheetmark, hoja de calculo a markdown, csv a markdown"
   },
   "header": {
     "title": "SheetMark",
@@ -12,7 +12,7 @@
   },
   "page": {
     "title": "Convierte Hojas de Cálculo a Múltiples Formatos",
-    "description": "Pega tus datos o sube un archivo y obtén una tabla en formato Markdown, CSV, SQL, HTML, JSON o PNG al instante."
+    "description": "Pega tus datos o sube un archivo y obtén una tabla en formato Markdown, CSV, SQL, HTML o JSON al instante."
   },
   "converter": {
     "inputCardTitle": "Datos de Entrada",
@@ -94,19 +94,6 @@
         "formatObjectObjects": "Objeto de Objetos",
         "outputDescriptionJson": "Aquí están tus datos en formato JSON.",
         "outputPlaceholderJson": "Tus datos JSON aparecerán aquí..."
-    },
-    "png": {
-        "outputTypePng": "PNG",
-        "pngOptionsTitle": "Opciones de Salida PNG",
-        "tableStyle": "Estilo de Tabla",
-        "fontFamily": "Familia de Fuentes",
-        "fontSize": "Tamaño de Fuente",
-        "outputDescriptionPng": "Aquí está tu tabla como una imagen PNG.",
-        "outputPlaceholderPng": "La vista previa de tu imagen PNG aparecerá aquí...",
-        "previewAlt": "Vista previa de la salida PNG",
-        "copyNotSupportedTitle": "Copiar no Soportado",
-        "copyNotSupportedDescription": "No es posible copiar imágenes al portapapeles. Por favor, usa el botón de descargar.",
-        "conversionError": "No se pudo generar la imagen. Por favor, inténtalo de nuevo."
     },
     "outputPlaceholderMarkdown": "Tu tabla Markdown aparecerá aquí...",
     "outputPlaceholderCsv": "Tus datos CSV aparecerán aquí...",
