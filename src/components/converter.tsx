@@ -10,14 +10,44 @@ import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel as SelectListLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 
 type ConverterProps = {
     dictionary: any;
 }
+
+const tableStyles = [
+    {
+        category: 'Light',
+        styles: [
+            { name: 'Plain Light', headerBg: '#FFFFFF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#E0E0E0', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Light Blue', headerBg: '#CDE4F9', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F0F8FF', borderColor: '#A9CCE3', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Light Green', headerBg: '#D4EFDF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2FFF6', borderColor: '#A9D9B8', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Light Grey', headerBg: '#F2F2F2', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2F2F2', borderColor: '#D3D3D3', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Blue Grid', headerBg: '#5D9CD3', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#5D9CD3', fontColor: '#000000', borders: 'all' },
+            { name: 'Green Grid', headerBg: '#70AD47', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#70AD47', fontColor: '#000000', borders: 'all' },
+        ],
+    },
+    {
+        category: 'Medium',
+        styles: [
+            { name: 'Medium Black', headerBg: '#000000', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#F2F2F2', borderColor: '#D3D3D3', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Medium Blue', headerBg: '#4472C4', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#D9E2F3', borderColor: '#B4C6E7', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Medium Orange', headerBg: '#ED7D31', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FDEBDD', borderColor: '#F8CBAD', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Medium Green', headerBg: '#548235', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#E2EFDA', borderColor: '#C5E0B4', fontColor: '#000000', borders: 'horizontal' },
+        ],
+    },
+    {
+        category: 'Dark',
+        styles: [
+            { name: 'Dark Grey', headerBg: '#333333', headerColor: '#FFFFFF', rowBg: '#595959', altRowBg: '#434343', borderColor: '#757575', fontColor: '#FFFFFF', borders: 'horizontal' },
+            { name: 'Dark Blue', headerBg: '#2F5597', headerColor: '#FFFFFF', rowBg: '#597AB8', altRowBg: '#4A6296', borderColor: '#8FAADC', fontColor: '#FFFFFF', borders: 'horizontal' },
+            { name: 'Dark Green', headerBg: '#385723', headerColor: '#FFFFFF', rowBg: '#5B794A', altRowBg: '#4A6539', borderColor: '#849E6F', fontColor: '#FFFFFF', borders: 'horizontal' },
+        ],
+    },
+];
 
 export function Converter({ dictionary }: ConverterProps) {
     const [inputData, setInputData] = useState('');
@@ -70,15 +100,9 @@ export function Converter({ dictionary }: ConverterProps) {
     const [minifyJson, setMinifyJson] = useState(false);
 
     // PNG State
-    const [pngTheme, setPngTheme] = useState('light');
-    const [pngPadding, setPngPadding] = useState([16]);
-    const [pngCellPadding, setPngCellPadding] = useState([8]);
     const [pngFontSize, setPngFontSize] = useState('14');
-    const [pngShowBorders, setPngShowBorders] = useState(true);
-    const [pngBorderColor, setPngBorderColor] = useState('#000000');
-    const [pngBoldHeader, setPngBoldHeader] = useState(true);
     const [pngFontFamily, setPngFontFamily] = useState('sans-serif');
-    const [pngBgColor, setPngBgColor] = useState('#ffffff');
+    const [activeTableStyle, setActiveTableStyle] = useState(tableStyles[0].styles[0]);
 
 
     useEffect(() => {
@@ -96,16 +120,6 @@ export function Converter({ dictionary }: ConverterProps) {
             }
         }
     }, [encoding, fileBuffer, toast, dictionary]);
-
-    useEffect(() => {
-        if (pngTheme === 'light') {
-            setPngBgColor('#ffffff');
-            setPngBorderColor('#000000');
-        } else {
-            setPngBgColor('#333333');
-            setPngBorderColor('#ffffff');
-        }
-    }, [pngTheme]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputData(e.target.value);
@@ -455,11 +469,9 @@ export function Converter({ dictionary }: ConverterProps) {
             const dataUrl = await htmlToImage.toPng(node, {
                 quality: 1,
                 pixelRatio: 2,
-                backgroundColor: pngBgColor,
+                backgroundColor: activeTableStyle.headerBg,
                  style: {
                     margin: '0',
-                    fontFamily: pngFontFamily,
-                    fontSize: `${pngFontSize}px`,
                  }
             });
             return dataUrl;
@@ -517,8 +529,7 @@ export function Converter({ dictionary }: ConverterProps) {
         prettyMarkdown, simpleMarkdown, addLineNumbers, boldFirstRow, boldFirstColumn, textAlign, 
         multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, 
         useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId,
-        jsonFormat, minifyJson, pngTheme, pngPadding, pngFontSize, pngShowBorders, pngBgColor,
-        pngCellPadding, pngBoldHeader, pngFontFamily, pngBorderColor
+        jsonFormat, minifyJson, pngFontSize, pngFontFamily, activeTableStyle
     ]);
 
 
@@ -648,40 +659,56 @@ export function Converter({ dictionary }: ConverterProps) {
         html: dictionary.outputPlaceholderHtml,
         json: dictionary.json.outputPlaceholderJson,
         png: dictionary.png.outputPlaceholderPng
-    }[outputType];
+    }[outputType] || '';
 
     const PngPreviewTable = () => {
         const tableData = parseInput(inputData);
         if (!tableData || tableData.length === 0) return null;
+        
         const headerRow = firstHeader ? tableData[0] : [];
         const bodyRows = firstHeader ? tableData.slice(1) : tableData;
+        const s = activeTableStyle;
+        const cellPadding = '8px 12px';
 
-        const cellStyle: React.CSSProperties = {
-            padding: `${pngCellPadding[0]}px`,
-            border: pngShowBorders ? `1px solid ${pngBorderColor}` : 'none',
+        const getBorderStyle = (type: 'all' | 'horizontal', position: 'header' | 'cell') => {
+            if (type === 'all') {
+                return `1px solid ${s.borderColor}`;
+            }
+            if (type === 'horizontal') {
+                const borderStyle = `1px solid ${s.borderColor}`;
+                if (position === 'header') return `0 0 ${borderStyle} 0`;
+                return `0 0 ${borderStyle} 0`;
+            }
+            return 'none';
         };
 
         const headerCellStyle: React.CSSProperties = {
-            ...cellStyle,
-            fontWeight: pngBoldHeader ? 'bold' : 'normal',
+            backgroundColor: s.headerBg,
+            color: s.headerColor,
+            padding: cellPadding,
+            fontWeight: 'bold',
+            border: getBorderStyle(s.borders, 'header'),
         };
+
+        const getCellStyles = (rowIndex: number): React.CSSProperties => ({
+            backgroundColor: rowIndex % 2 === 0 ? s.rowBg : s.altRowBg,
+            color: s.fontColor,
+            padding: cellPadding,
+            border: getBorderStyle(s.borders, 'cell'),
+        });
 
         return (
              <div 
                 ref={imagePreviewRef} 
-                className="absolute -left-[9999px] -top-[9999px]"
-                style={{ 
-                    padding: `${pngPadding[0]}px`,
-                    backgroundColor: pngBgColor,
-                    fontFamily: pngFontFamily,
-                    fontSize: `${pngFontSize}px`,
-                    color: pngTheme === 'light' ? '#000000' : '#ffffff',
-                }}
+                className="absolute -left-[9999px] -top-[9999px] bg-white p-4"
+                 style={{ backgroundColor: s.rowBg }}
             >
                 <table 
                     style={{ 
                         borderCollapse: 'collapse',
-                        width: '100%',
+                        fontFamily: pngFontFamily,
+                        fontSize: `${pngFontSize}px`,
+                        color: s.fontColor,
                     }}
                 >
                     {firstHeader && (
@@ -697,7 +724,7 @@ export function Converter({ dictionary }: ConverterProps) {
                         {bodyRows.map((row, i) => (
                             <tr key={i}>
                                 {row.map((cell, j) => (
-                                    <td key={j} style={cellStyle}>{cell}</td>
+                                    <td key={j} style={getCellStyles(i)}>{cell}</td>
                                 ))}
                             </tr>
                         ))}
@@ -1080,83 +1107,62 @@ export function Converter({ dictionary }: ConverterProps) {
                             {outputType === 'png' && (
                                 <div className="mt-4 p-4 border rounded-lg bg-card space-y-4">
                                     <p className="text-sm font-medium">{dictionary.png.pngOptionsTitle}</p>
-                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="grid gap-1.5">
-                                            <Label htmlFor="png-theme">{dictionary.png.theme}</Label>
-                                            <Select value={pngTheme} onValueChange={setPngTheme}>
-                                                <SelectTrigger id="png-theme" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <Label htmlFor="png-table-style">{dictionary.png.tableStyle}</Label>
+                                            <Select
+                                                value={activeTableStyle.name}
+                                                onValueChange={(styleName) => {
+                                                    const newStyle = tableStyles.flatMap(cat => cat.styles).find(s => s.name === styleName);
+                                                    if (newStyle) setActiveTableStyle(newStyle);
+                                                }}
+                                            >
+                                                <SelectTrigger id="png-table-style" className="bg-background"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="light">{dictionary.png.themeLight}</SelectItem>
-                                                    <SelectItem value="dark">{dictionary.png.themeDark}</SelectItem>
+                                                    {tableStyles.map(category => (
+                                                        <SelectGroup key={category.category}>
+                                                            <SelectListLabel>{category.category}</SelectListLabel>
+                                                            {category.styles.map(style => (
+                                                                <SelectItem key={style.name} value={style.name}>
+                                                                    {style.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="grid gap-1.5">
-                                             <div className="flex items-center gap-1">
-                                                <Label htmlFor="png-bg-color">{dictionary.png.backgroundColor}</Label>
-                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.backgroundColorTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
-                                            </div>
-                                            <Input id="png-bg-color" type="color" value={pngBgColor} onChange={(e) => setPngBgColor(e.target.value)} />
+                                            <Label htmlFor="png-font-family">{dictionary.png.fontFamily}</Label>
+                                            <Select value={pngFontFamily} onValueChange={setPngFontFamily}>
+                                                <SelectTrigger id="png-font-family" className="bg-background" style={{fontFamily: pngFontFamily}}><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="sans-serif" style={{fontFamily: 'sans-serif'}}>Sans-serif</SelectItem>
+                                                    <SelectItem value="serif" style={{fontFamily: 'serif'}}>Serif</SelectItem>
+                                                    <SelectItem value="monospace" style={{fontFamily: 'monospace'}}>Monospace</SelectItem>
+                                                    <SelectItem value="Arial, sans-serif" style={{fontFamily: 'Arial, sans-serif'}}>Arial</SelectItem>
+                                                    <SelectItem value="'Times New Roman', serif" style={{fontFamily: "'Times New Roman', serif"}}>Times New Roman</SelectItem>
+                                                    <SelectItem value="'Courier New', monospace" style={{fontFamily: "'Courier New', monospace"}}>Courier New</SelectItem>
+                                                    <SelectItem value="Verdana, sans-serif" style={{fontFamily: 'Verdana, sans-serif'}}>Verdana</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                        <div className="grid gap-1.5">
-                                             <div className="flex items-center gap-1">
-                                                <Label htmlFor="png-border-color">{dictionary.png.borderColor}</Label>
-                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.borderColorTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
-                                            </div>
-                                            <Input id="png-border-color" type="color" value={pngBorderColor} onChange={(e) => setPngBorderColor(e.target.value)} />
+                                        <div className="grid gap-1.5 sm:col-span-2">
+                                            <Label htmlFor="png-font-size">{dictionary.png.fontSize}</Label>
+                                            <Select value={pngFontSize} onValueChange={setPngFontSize}>
+                                                <SelectTrigger id="png-font-size" className="bg-background"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="8">8px</SelectItem>
+                                                    <SelectItem value="10">10px</SelectItem>
+                                                    <SelectItem value="12">12px</SelectItem>
+                                                    <SelectItem value="14">14px</SelectItem>
+                                                    <SelectItem value="16">16px</SelectItem>
+                                                    <SelectItem value="18">18px</SelectItem>
+                                                    <SelectItem value="20">20px</SelectItem>
+                                                    <SelectItem value="24">24px</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="show-borders-png" checked={pngShowBorders} onCheckedChange={(c) => setPngShowBorders(!!c)} />
-                                            <div className="flex items-center gap-1">
-                                                <Label htmlFor="show-borders-png">{dictionary.png.showBorders}</Label>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="bold-header-png" checked={pngBoldHeader} onCheckedChange={(c) => setPngBoldHeader(!!c)} />
-                                            <div className="flex items-center gap-1">
-                                                <Label htmlFor="bold-header-png">{dictionary.png.boldHeader}</Label>
-                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.boldHeaderTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="png-font-family">{dictionary.png.fontFamily}</Label>
-                                        <Select value={pngFontFamily} onValueChange={setPngFontFamily}>
-                                            <SelectTrigger id="png-font-family" className="bg-background" style={{fontFamily: pngFontFamily}}><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="sans-serif" style={{fontFamily: 'sans-serif'}}>Sans-serif</SelectItem>
-                                                <SelectItem value="serif" style={{fontFamily: 'serif'}}>Serif</SelectItem>
-                                                <SelectItem value="monospace" style={{fontFamily: 'monospace'}}>Monospace</SelectItem>
-                                                <SelectItem value="Arial, sans-serif" style={{fontFamily: 'Arial, sans-serif'}}>Arial</SelectItem>
-                                                <SelectItem value="'Times New Roman', serif" style={{fontFamily: "'Times New Roman', serif"}}>Times New Roman</SelectItem>
-                                                <SelectItem value="'Courier New', monospace" style={{fontFamily: "'Courier New', monospace"}}>Courier New</SelectItem>
-                                                <SelectItem value="Verdana, sans-serif" style={{fontFamily: 'Verdana, sans-serif'}}>Verdana</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="png-font-size">{dictionary.png.fontSize}</Label>
-                                        <Select value={pngFontSize} onValueChange={setPngFontSize}>
-                                            <SelectTrigger id="png-font-size" className="bg-background"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="8">8px</SelectItem>
-                                                <SelectItem value="10">10px</SelectItem>
-                                                <SelectItem value="12">12px</SelectItem>
-                                                <SelectItem value="14">14px</SelectItem>
-                                                <SelectItem value="16">16px</SelectItem>
-                                                <SelectItem value="18">18px</SelectItem>
-                                                <SelectItem value="20">20px</SelectItem>
-                                                <SelectItem value="24">24px</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="png-padding">{dictionary.png.padding} ({pngPadding[0]}px)</Label>
-                                        <Slider id="png-padding" value={pngPadding} onValueChange={setPngPadding} max={50} step={1} />
-                                    </div>
-                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="png-cell-padding">{dictionary.png.cellPadding} ({pngCellPadding[0]}px)</Label>
-                                        <Slider id="png-cell-padding" value={pngCellPadding} onValueChange={setPngCellPadding} max={30} step={1} />
                                     </div>
                                     <PngPreviewTable />
                                 </div>
