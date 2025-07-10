@@ -73,7 +73,7 @@ export function Converter({ dictionary }: ConverterProps) {
     const [pngTheme, setPngTheme] = useState('light');
     const [pngPadding, setPngPadding] = useState([16]);
     const [pngCellPadding, setPngCellPadding] = useState([8]);
-    const [pngFontSize, setPngFontSize] = useState([14]);
+    const [pngFontSize, setPngFontSize] = useState('14');
     const [pngShowBorders, setPngShowBorders] = useState(true);
     const [pngBoldHeader, setPngBoldHeader] = useState(true);
     const [pngFontFamily, setPngFontFamily] = useState('sans-serif');
@@ -449,18 +449,15 @@ export function Converter({ dictionary }: ConverterProps) {
         
         const node = imagePreviewRef.current;
         try {
-            // Re-trigger styles before capturing
-            if (node.style.fontFamily !== pngFontFamily) node.style.fontFamily = pngFontFamily;
-            if (node.style.backgroundColor !== pngBgColor) node.style.backgroundColor = pngBgColor;
-
             const dataUrl = await htmlToImage.toPng(node, {
                 quality: 1,
                 pixelRatio: 2,
                 backgroundColor: pngBgColor,
                  style: {
                     margin: '0',
-                    fontFamily: pngFontFamily
-                }
+                    fontFamily: pngFontFamily,
+                    fontSize: `${pngFontSize}px`,
+                 }
             });
             return dataUrl;
         } catch (error) {
@@ -656,12 +653,12 @@ export function Converter({ dictionary }: ConverterProps) {
         const headerRow = firstHeader ? tableData[0] : [];
         const bodyRows = firstHeader ? tableData.slice(1) : tableData;
 
-        const cellStyle = {
+        const cellStyle: React.CSSProperties = {
             padding: `${pngCellPadding[0]}px`,
             border: pngShowBorders ? `1px solid ${pngTheme === 'light' ? '#dddddd' : '#555555'}` : 'none',
         };
 
-        const headerCellStyle = {
+        const headerCellStyle: React.CSSProperties = {
             ...cellStyle,
             fontWeight: pngBoldHeader ? 'bold' : 'normal',
         };
@@ -669,25 +666,26 @@ export function Converter({ dictionary }: ConverterProps) {
         return (
              <div 
                 ref={imagePreviewRef} 
-                className="absolute -left-[9999px] -top-[9999px] p-4 bg-background"
+                className="absolute -left-[9999px] -top-[9999px]"
                 style={{ 
                     padding: `${pngPadding[0]}px`,
                     backgroundColor: pngBgColor,
                     fontFamily: pngFontFamily,
+                    fontSize: `${pngFontSize}px`,
                     color: pngTheme === 'light' ? '#000000' : '#ffffff',
                 }}
             >
                 <table 
-                    className="border-collapse w-full" 
                     style={{ 
-                        fontSize: `${pngFontSize[0]}px`,
+                        borderCollapse: 'collapse',
+                        width: '100%',
                     }}
                 >
                     {firstHeader && (
                         <thead>
                             <tr>
                                 {headerRow.map((cell, i) => (
-                                    <th key={i} style={headerCellStyle} className="p-2 text-left">{cell}</th>
+                                    <th key={i} style={headerCellStyle}>{cell}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -696,7 +694,7 @@ export function Converter({ dictionary }: ConverterProps) {
                         {bodyRows.map((row, i) => (
                             <tr key={i}>
                                 {row.map((cell, j) => (
-                                    <td key={j} style={cellStyle} className="p-2">{cell}</td>
+                                    <td key={j} style={cellStyle}>{cell}</td>
                                 ))}
                             </tr>
                         ))}
@@ -1126,6 +1124,22 @@ export function Converter({ dictionary }: ConverterProps) {
                                             </SelectContent>
                                         </Select>
                                     </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="png-font-size">{dictionary.png.fontSize}</Label>
+                                        <Select value={pngFontSize} onValueChange={setPngFontSize}>
+                                            <SelectTrigger id="png-font-size" className="bg-background"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="8">8px</SelectItem>
+                                                <SelectItem value="10">10px</SelectItem>
+                                                <SelectItem value="12">12px</SelectItem>
+                                                <SelectItem value="14">14px</SelectItem>
+                                                <SelectItem value="16">16px</SelectItem>
+                                                <SelectItem value="18">18px</SelectItem>
+                                                <SelectItem value="20">20px</SelectItem>
+                                                <SelectItem value="24">24px</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                      <div className="grid gap-1.5">
                                         <Label htmlFor="png-padding">{dictionary.png.padding} ({pngPadding[0]}px)</Label>
                                         <Slider id="png-padding" value={pngPadding} onValueChange={setPngPadding} max={50} step={1} />
@@ -1133,10 +1147,6 @@ export function Converter({ dictionary }: ConverterProps) {
                                      <div className="grid gap-1.5">
                                         <Label htmlFor="png-cell-padding">{dictionary.png.cellPadding} ({pngCellPadding[0]}px)</Label>
                                         <Slider id="png-cell-padding" value={pngCellPadding} onValueChange={setPngCellPadding} max={30} step={1} />
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="png-font-size">{dictionary.png.fontSize} ({pngFontSize[0]}px)</Label>
-                                        <Slider id="png-font-size" value={pngFontSize} onValueChange={setPngFontSize} min={8} max={24} step={1} />
                                     </div>
                                     <PngPreviewTable />
                                 </div>
