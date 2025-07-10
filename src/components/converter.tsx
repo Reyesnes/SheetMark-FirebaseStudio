@@ -23,11 +23,11 @@ const tableStyles = [
         category: 'Light',
         styles: [
             { name: 'Plain Light', headerBg: '#FFFFFF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#E0E0E0', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Light Blue', headerBg: '#CDE4F9', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F0F8FF', borderColor: '#A9CCE3', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Light Green', headerBg: '#D4EFDF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2FFF6', borderColor: '#A9D9B8', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Light Blue', headerBg: '#F0F8FF', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F0F8FF', borderColor: '#A9CCE3', fontColor: '#000000', borders: 'horizontal' },
+            { name: 'Light Green', headerBg: '#F2FFF6', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2FFF6', borderColor: '#A9D9B8', fontColor: '#000000', borders: 'horizontal' },
             { name: 'Light Grey', headerBg: '#F2F2F2', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#F2F2F2', borderColor: '#D3D3D3', fontColor: '#000000', borders: 'horizontal' },
-            { name: 'Blue Grid', headerBg: '#5D9CD3', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#5D9CD3', fontColor: '#000000', borders: 'all' },
-            { name: 'Green Grid', headerBg: '#70AD47', headerColor: '#FFFFFF', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#70AD47', fontColor: '#000000', borders: 'all' },
+            { name: 'Blue Grid', headerBg: '#DEEBF7', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#B2CDE5', fontColor: '#000000', borders: 'all' },
+            { name: 'Green Grid', headerBg: '#E2EFDA', headerColor: '#000000', rowBg: '#FFFFFF', altRowBg: '#FFFFFF', borderColor: '#C5E0B4', fontColor: '#000000', borders: 'all' },
         ],
     },
     {
@@ -469,7 +469,7 @@ export function Converter({ dictionary }: ConverterProps) {
             const dataUrl = await htmlToImage.toPng(node, {
                 quality: 1,
                 pixelRatio: 2,
-                backgroundColor: activeTableStyle.headerBg,
+                backgroundColor: activeTableStyle.rowBg,
                  style: {
                     margin: '0',
                  }
@@ -670,14 +670,19 @@ export function Converter({ dictionary }: ConverterProps) {
         const s = activeTableStyle;
         const cellPadding = '8px 12px';
 
-        const getBorderStyle = (type: 'all' | 'horizontal', position: 'header' | 'cell') => {
+        const getBorderStyle = (type: 'all' | 'horizontal' | 'none', position: 'header' | 'cell') => {
+            if (type === 'none') {
+                return 'none';
+            }
+            const borderStyle = `1px solid ${s.borderColor}`;
             if (type === 'all') {
-                return `1px solid ${s.borderColor}`;
+                return borderStyle;
             }
             if (type === 'horizontal') {
-                const borderStyle = `1px solid ${s.borderColor}`;
-                if (position === 'header') return `0 0 ${borderStyle} 0`;
-                return `0 0 ${borderStyle} 0`;
+                if (position === 'header') {
+                    return `none none ${borderStyle} none`;
+                }
+                return `none none ${borderStyle} none`;
             }
             return 'none';
         };
@@ -687,6 +692,7 @@ export function Converter({ dictionary }: ConverterProps) {
             color: s.headerColor,
             padding: cellPadding,
             fontWeight: 'bold',
+            borderBottom: `2px solid ${s.borderColor}`,
             border: getBorderStyle(s.borders, 'header'),
         };
 
@@ -700,7 +706,7 @@ export function Converter({ dictionary }: ConverterProps) {
         return (
              <div 
                 ref={imagePreviewRef} 
-                className="absolute -left-[9999px] -top-[9999px] bg-white p-4"
+                className="absolute -left-[9999px] -top-[9999px] p-4"
                  style={{ backgroundColor: s.rowBg }}
             >
                 <table 
@@ -709,6 +715,7 @@ export function Converter({ dictionary }: ConverterProps) {
                         fontFamily: pngFontFamily,
                         fontSize: `${pngFontSize}px`,
                         color: s.fontColor,
+                        borderSpacing: 0,
                     }}
                 >
                     {firstHeader && (
