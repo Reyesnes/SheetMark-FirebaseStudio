@@ -444,21 +444,23 @@ export function Converter({ dictionary }: ConverterProps) {
         return JSON.stringify(result, null, minifyJson ? 0 : 2);
     };
 
-    const convertToPng = async (tableData: string[][]): Promise<string> => {
-        if (!tableData || tableData.length === 0 || !imagePreviewRef.current) return '';
+    const convertToPng = async (): Promise<string> => {
+        if (!imagePreviewRef.current) return '';
         
         const node = imagePreviewRef.current;
         try {
+            // Re-trigger styles before capturing
+            if (node.style.fontFamily !== pngFontFamily) node.style.fontFamily = pngFontFamily;
+            if (node.style.backgroundColor !== pngBgColor) node.style.backgroundColor = pngBgColor;
+
             const dataUrl = await htmlToImage.toPng(node, {
-                // Ensure all styles are loaded before taking the screenshot
-                style: {
+                quality: 1,
+                pixelRatio: 2,
+                backgroundColor: pngBgColor,
+                 style: {
                     margin: '0',
-                },
-                // Wait for images and fonts to load
-                fetchRequest: {
-                    mode: 'cors',
-                    credentials: 'omit',
-                },
+                    fontFamily: pngFontFamily
+                }
             });
             return dataUrl;
         } catch (error) {
@@ -490,7 +492,8 @@ export function Converter({ dictionary }: ConverterProps) {
             } else if (outputType === 'json') {
                 setOutputData(convertToJson(table));
             } else if (outputType === 'png') {
-                 const pngDataUrl = await convertToPng(table);
+                 // Trigger PNG conversion, which will update state
+                 const pngDataUrl = await convertToPng();
                  setOutputData(pngDataUrl);
             }
         } catch (error) {
@@ -655,7 +658,7 @@ export function Converter({ dictionary }: ConverterProps) {
 
         const cellStyle = {
             padding: `${pngCellPadding[0]}px`,
-            border: pngShowBorders ? `1px solid ${pngTheme === 'light' ? '#000000' : '#ffffff'}` : 'none',
+            border: pngShowBorders ? `1px solid ${pngTheme === 'light' ? '#dddddd' : '#555555'}` : 'none',
         };
 
         const headerCellStyle = {
@@ -671,13 +674,13 @@ export function Converter({ dictionary }: ConverterProps) {
                     padding: `${pngPadding[0]}px`,
                     backgroundColor: pngBgColor,
                     fontFamily: pngFontFamily,
+                    color: pngTheme === 'light' ? '#000000' : '#ffffff',
                 }}
             >
                 <table 
                     className="border-collapse w-full" 
                     style={{ 
                         fontSize: `${pngFontSize[0]}px`,
-                        color: pngTheme === 'light' ? '#000000' : '#ffffff',
                     }}
                 >
                     {firstHeader && (
