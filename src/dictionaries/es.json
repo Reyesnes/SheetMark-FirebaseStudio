@@ -103,6 +103,8 @@
         "themeDark": "Oscuro",
         "backgroundColor": "Color de Fondo",
         "backgroundColorTooltip": "Elige un color de fondo personalizado para la imagen.",
+        "borderColor": "Color del Borde",
+        "borderColorTooltip": "Elige un color de borde personalizado para la tabla.",
         "showBorders": "Mostrar Bordes",
         "boldHeader": "Encabezado en Negrita",
         "boldHeaderTooltip": "Pone la fila del encabezado en negrita.",
@@ -151,5 +153,3 @@
     "buyMeAPizza": "Invítame a una pizza"
   }
 }
-
-    

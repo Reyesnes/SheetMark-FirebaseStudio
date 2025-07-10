@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 
@@ -75,6 +75,7 @@ export function Converter({ dictionary }: ConverterProps) {
     const [pngCellPadding, setPngCellPadding] = useState([8]);
     const [pngFontSize, setPngFontSize] = useState('14');
     const [pngShowBorders, setPngShowBorders] = useState(true);
+    const [pngBorderColor, setPngBorderColor] = useState('#000000');
     const [pngBoldHeader, setPngBoldHeader] = useState(true);
     const [pngFontFamily, setPngFontFamily] = useState('sans-serif');
     const [pngBgColor, setPngBgColor] = useState('#ffffff');
@@ -99,8 +100,10 @@ export function Converter({ dictionary }: ConverterProps) {
     useEffect(() => {
         if (pngTheme === 'light') {
             setPngBgColor('#ffffff');
+            setPngBorderColor('#000000');
         } else {
             setPngBgColor('#333333');
+            setPngBorderColor('#ffffff');
         }
     }, [pngTheme]);
 
@@ -515,7 +518,7 @@ export function Converter({ dictionary }: ConverterProps) {
         multilineHandling, createTable, batchInsert, dropTable, databaseType, tableName, primaryKey, 
         useDivTable, minifyCode, useTableHeadStructure, useTableCaption, tableCaptionText, tableClass, tableId,
         jsonFormat, minifyJson, pngTheme, pngPadding, pngFontSize, pngShowBorders, pngBgColor,
-        pngCellPadding, pngBoldHeader, pngFontFamily
+        pngCellPadding, pngBoldHeader, pngFontFamily, pngBorderColor
     ]);
 
 
@@ -655,7 +658,7 @@ export function Converter({ dictionary }: ConverterProps) {
 
         const cellStyle: React.CSSProperties = {
             padding: `${pngCellPadding[0]}px`,
-            border: pngShowBorders ? `1px solid ${pngTheme === 'light' ? '#dddddd' : '#555555'}` : 'none',
+            border: pngShowBorders ? `1px solid ${pngBorderColor}` : 'none',
         };
 
         const headerCellStyle: React.CSSProperties = {
@@ -1094,6 +1097,13 @@ export function Converter({ dictionary }: ConverterProps) {
                                                 <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.backgroundColorTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
                                             </div>
                                             <Input id="png-bg-color" type="color" value={pngBgColor} onChange={(e) => setPngBgColor(e.target.value)} />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                             <div className="flex items-center gap-1">
+                                                <Label htmlFor="png-border-color">{dictionary.png.borderColor}</Label>
+                                                <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger><TooltipContent><p>{dictionary.png.borderColorTooltip}</p></TooltipContent></Tooltip></TooltipProvider>
+                                            </div>
+                                            <Input id="png-border-color" type="color" value={pngBorderColor} onChange={(e) => setPngBorderColor(e.target.value)} />
                                         </div>
                                          <div className="flex items-center space-x-2">
                                             <Checkbox id="show-borders-png" checked={pngShowBorders} onCheckedChange={(c) => setPngShowBorders(!!c)} />

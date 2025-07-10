@@ -103,6 +103,8 @@
         "themeDark": "Dark",
         "backgroundColor": "Background Color",
         "backgroundColorTooltip": "Choose a custom background color for the image.",
+        "borderColor": "Border Color",
+        "borderColorTooltip": "Choose a custom border color for the table.",
         "showBorders": "Show Borders",
         "boldHeader": "Bold Header",
         "boldHeaderTooltip": "Make the header row bold.",
@@ -151,5 +153,3 @@
     "buyMeAPizza": "Buy me a pizza"
   }
 }
-
-    
